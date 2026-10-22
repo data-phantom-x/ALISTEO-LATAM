@@ -1723,12 +1723,39 @@
             if (linkAyuda) linkAyuda.hidden = visible ? true : !yaVisto();
         }
 
+        function esMobileView() {
+            return window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches;
+        }
+        function actualizarBotonTop() {
+            var btn = document.getElementById('top-install-btn');
+            if (!btn) return;
+            if (yaInstalada()) { btn.style.display = 'none'; return; }
+            if (!esMobileView()) { btn.style.display = 'none'; return; }
+            // iOS: no hay evento, pero se puede guiar; aun así mostramos el icono
+            btn.style.display = (pendiente || esIOS()) ? 'inline-flex' : 'none';
+        }
+
         // El evento no se repite: si se pierde aquí, no hay segunda oportunidad.
         window.addEventListener('beforeinstallprompt', function (e) {
             e.preventDefault();
             pendiente = e;
             iniciar();
+            actualizarBotonTop();
         });
+
+        window.instalarPwaTop = function () {
+            if (pendiente) {
+                pendiente.prompt();
+                pendiente.userChoice.then(function () {
+                    pendiente = null;
+                    marcarVisto();
+                    mostrarAyuda(false);
+                    actualizarBotonTop();
+                });
+            } else if (esIOS()) {
+                mostrarAyuda(true);
+            }
+        };
 
         window.addEventListener('appinstalled', function () {
             marcarVisto();
@@ -1802,9 +1829,11 @@
             // confirmó que la app es instalable.
             if (iosEs || pendiente) mostrarAyuda(true);
             else if (linkAyuda) linkAyuda.hidden = true;
+            actualizarBotonTop();
         }
 
         document.addEventListener('DOMContentLoaded', iniciar);
+        window.addEventListener('resize', actualizarBotonTop);
     })();
 </script>
 
@@ -1863,6 +1892,7 @@
                 <select id="team-select" class="team-select" onchange="switchTeam(this.value)" title="Equipo que estás viendo"></select>
             </div>
             <button type="button" id="btn-logout" class="btn-danger-outline" onclick="logoutFull()" style="width:28px; min-width:28px; padding:0; display:none; font-size:14px; flex:none;">✖</button>
+            <button type="button" id="top-install-btn" class="btn-outline no-print" onclick="instalarPwaTop()" title="Instalar ALISTEO" style="display:none; width:28px; min-width:28px; padding:0; font-size:14px; flex:none;">📲</button>
             <button class="btn-outline" onclick="window.print()" title="Imprimir" style="width:28px; min-width:28px; padding:0; font-size:14px; flex:none;">🖨️</button>
             <button type="button" id="btn-admin" class="btn-outline" onclick="openAdminModal()" title="Administrar usuarios autorizados" style="display:none; padding:0 10px; font-size:10px;">⚙ ADMIN</button>
         </div>
