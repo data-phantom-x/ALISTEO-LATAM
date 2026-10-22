@@ -1063,6 +1063,11 @@
            Ojo: una ventana de escritorio angosta Y mas baja que ancha (p.ej. 600x500)
            queda fuera de aqui y recibe el formato normal, que le va justo. */
         @media (max-width: 900px) and (orientation: portrait) {
+            /* Deslizador personalizado visible en pantalla pequeña */
+            html, body { scrollbar-width: auto; }
+            ::-webkit-scrollbar { width: 8px; height: 8px; display: block; }
+            ::-webkit-scrollbar-track { background: color-mix(in srgb, #1F4A8C 10%, transparent); border-radius: 4px; }
+            ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #1F4A8C, #17A8B8); border-radius: 4px; border: 1px solid transparent; background-clip: content-box; }
             body { padding: 8px; }
             .container { padding: 12px; }
             
@@ -1837,7 +1842,7 @@
 <div class="container">
     <div class="top-bar no-print">
         <div class="top-bar-left">
-            <a class="brand-alisteo" href="#" onclick="return false;" title="ALISTEO"><img src="icons/alisteo-logo.svg" alt="ALISTEO"></a>
+            <span class="brand-alisteo" title="ALISTEO"><img src="icons/alisteo-logo.svg" alt="ALISTEO"></span>
             <button type="button" id="btn-mode-toggle" class="btn-accent btn-top" onclick="toggleCleanView()">👤 USUARIO</button>
             <span id="logged-user" class="leader-only" style="font-size: 10px; font-weight: bold; color: var(--primary); border: 1px solid var(--primary); padding: 0 10px; border-radius: var(--button-radius); background: var(--surface-soft); display: none; align-items: center; height: var(--button-height); box-sizing: border-box; margin: 0;"></span>
             <div id="team-switcher" class="team-switcher">
@@ -1951,7 +1956,7 @@
     <div class="conn-spinner-ring"></div>
 </div>
 
-<button type="button" id="fab-unlock" class="fab-unlock" onclick="toggleMobileUnlock()" aria-label="Activar botones">🔒</button>
+<button type="button" id="fab-unlock" class="fab-unlock no-print" onclick="toggleMobileUnlock()" aria-label="Activar botones">🔒</button>
 
 <div id="confirm-modal" class="modal">
     <div class="modal-content" style="max-width: 380px;">
