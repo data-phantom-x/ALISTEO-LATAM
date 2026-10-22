@@ -3397,11 +3397,12 @@
         }
         if (id === currentTeam && !veniaDeTodos) { pintarVistaDeTodos(); updateTeamSwitcher(); return; }
         if (!equipoActivo(id)) return showToast('⚠️ EQUIPO DESACTIVADO');
-        currentTeam = id;
-        activeCodeFilter = '';
-        localStorage.setItem(LS_EQUIPO, id);
-        avisarCambioSesion();                       // CFR recarga y se queda en su propio equipo
-        searchCache = null;
+    currentTeam = id;
+    activeCodeFilter = '';
+    localStorage.setItem(LS_EQUIPO, id);
+    // El cambio de equipo NO es un cambio de sesión: no se recarga la app.
+    // El aviso de sesión compartida queda solo para login/logout.
+    searchCache = null;
         if (typeof clearSearch === 'function') { try { clearSearch(); } catch (e) {} }
         // Los roles son por equipo: hay que recalcular SIEMPRE el estado de lider/admin.
         // Si en un equipo es técnico y en otro es admin, al cambiar debe aparecer el botón.
