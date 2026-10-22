@@ -772,6 +772,55 @@
             font-weight: 500; line-height: 1.35; padding-left: 8px; border-left: 2px solid var(--border-violet);
         }
 
+        /* ─── ESTADOS DE AVANCE DE TAREA ─────────────────────────────────────
+           Muestran al principio del título en qué punto está el trabajo real:
+           no solo "hecho / no hecho", sino start, pausado, diferido, etc. */
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 0.72em; font-weight: 800; letter-spacing: 0.4px;
+            padding: 1px 6px; border-radius: 4px; margin-right: 6px;
+            white-space: nowrap; vertical-align: middle; border: 1px solid transparent;
+        }
+        .status-badge.start { color: #0E7C86; background: #E0F7FA; border-color: #B2EBF2; }
+        .status-badge.cerrado { color: #2E7D32; background: #E8F5E9; border-color: #A5D6A7; }
+        .status-badge.pausado { color: #F57C00; background: #FFF3E0; border-color: #FFCC80; }
+        .status-badge.diferido { color: #E65100; background: #FBE9E7; border-color: #FFAB91; }
+        .status-badge.evaluado { color: #6A1B9A; background: #F3E5F5; border-color: #CE93D8; }
+        .status-badge.avance { color: #1565C0; background: #E3F2FD; border-color: #90CAF9; }
+        .status-badge.otro { color: #455A64; background: #ECEFF1; border-color: #B0BEC5; }
+
+        .status-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+        .status-btn {
+            width: 100%; height: auto; min-height: 36px; padding: 8px 6px;
+            border: 1px solid var(--border); border-radius: var(--button-radius);
+            background: var(--surface); color: var(--primary);
+            font-size: 10px; font-weight: 800; text-transform: uppercase;
+            cursor: pointer; transition: all 0.15s; line-height: 1.2;
+        }
+        .status-btn:hover { border-color: var(--primary); background: var(--surface-soft); }
+        .status-btn.selected { background: var(--primary); border-color: var(--primary); color: var(--surface); box-shadow: 0 2px 6px color-mix(in srgb, var(--primary) 25%, transparent); }
+        .status-btn.start.selected { background: #0E7C86; border-color: #0E7C86; }
+        .status-btn.cerrado.selected { background: #2E7D32; border-color: #2E7D32; }
+        .status-btn.pausado.selected { background: #F57C00; border-color: #F57C00; }
+        .status-btn.diferido.selected { background: #E65100; border-color: #E65100; }
+        .status-btn.evaluado.selected { background: #6A1B9A; border-color: #6A1B9A; }
+        .status-btn.avance.selected { background: #1565C0; border-color: #1565C0; }
+        .status-btn.otro.selected { background: #455A64; border-color: #455A64; }
+        #status-otro-input { margin-top: 6px; }
+        #status-otro-wrap { display: none; }
+        #status-otro-wrap.visible { display: block; }
+        .status-otro-check { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 10px; font-weight: 700; color: var(--primary); cursor: pointer; }
+        .status-otro-check input { width: 14px; height: 14px; accent-color: var(--primary); cursor: pointer; }
+
+        /* Fondo suave en toda la tarea según su estado de avance */
+        .task-status-start { background: linear-gradient(90deg, #E0F7FA 0%, #E0F7FA 6px, transparent 6px); }
+        .task-status-pausado { background: linear-gradient(90deg, #FFF3E0 0%, #FFF3E0 6px, transparent 6px); }
+        .task-status-diferido { background: linear-gradient(90deg, #FBE9E7 0%, #FBE9E7 6px, transparent 6px); }
+        .task-status-evaluado { background: linear-gradient(90deg, #F3E5F5 0%, #F3E5F5 6px, transparent 6px); }
+        .task-status-avance { background: linear-gradient(90deg, #E3F2FD 0%, #E3F2FD 6px, transparent 6px); }
+        .task-status-otro { background: linear-gradient(90deg, #ECEFF1 0%, #ECEFF1 6px, transparent 6px); }
+        .task-item.completed { opacity: 0.6 !important; background: transparent !important; }
+
         .action-bar { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
 
         /* Botones del encabezado de avión: una sola clase, sin overrides heredados.
@@ -1597,6 +1646,9 @@
             .action-bar { display: flex !important; flex-wrap: wrap !important; gap: 5px !important; width: auto !important; }
             .action-bar .action-btn { width: auto !important; }
             .view-controls, .view-controls > div { flex-direction: row !important; align-items: center !important; }
+
+            /* Estados de avance en impresión */
+            .status-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
     <style>
@@ -2028,6 +2080,28 @@
         <div class="modal-footer">
             <button class="btn-outline btn-modal-action" onclick="closePromptModal()">CANCELAR</button>
             <button class="btn-leader btn-modal-action" id="prompt-save-btn">GUARDAR NOTA</button>
+        </div>
+    </div>
+</div>
+
+<div id="task-status-modal" class="modal">
+    <div class="modal-content" style="max-width: 420px;">
+        <div class="modal-header">📊 ESTADO DE LA TAREA</div>
+        <div style="font-size: 10px; color: var(--comment); margin-bottom: 10px; line-height: 1.4;">
+            Selecciona el estado que refleja dónde está la tarea. Todo el equipo lo verá junto al título. "CERRADO" marca la tarea como terminada.
+        </div>
+        <div class="status-grid" id="status-grid"></div>
+        <div id="status-otro-wrap">
+            <input type="text" id="status-otro-input" maxlength="30" placeholder="ESCRIBE EL ESTADO (MÁX. 30 CARACTERES)" autocomplete="off" oninput="this.value = this.value.toUpperCase()" onkeypress="if(event.key === 'Enter') saveTaskStatus()">
+            <label class="status-otro-check">
+                <input type="checkbox" id="status-otro-completa">
+                <span>COMPLETAR TAREA</span>
+            </label>
+        </div>
+        <input type="text" id="status-comment-input" maxlength="200" placeholder="NOTA OPCIONAL SOBRE ESTE ESTADO..." autocomplete="off" oninput="this.value = this.value.toUpperCase()" onkeypress="if(event.key === 'Enter') saveTaskStatus()">
+        <div class="modal-footer">
+            <button class="btn-outline btn-modal-action" onclick="closeTaskStatusModal()">CANCELAR</button>
+            <button class="btn-leader btn-modal-action" id="status-save-btn" onclick="saveTaskStatus()">GUARDAR ESTADO</button>
         </div>
     </div>
 </div>
@@ -3012,7 +3086,7 @@
     function turnoCerradoPara(t) {
         if (!vistaTodos) return isShiftLockedForMe();
         const h = ((turnoDatos[t] || {}).header) || {};
-        return h.estado === 'cerrado' && h.cerradoPor !== myEmail;
+        return h.estado === 'cerrado' && h.cerradoPor !== myEmail && !esSuper();
     }
     // El avión que se va a editar. En la vista de todos puede ser de cualquier
     // equipo: se adopta ese equipo (sin cambiar lo que se ve) y se sigue. Si el
@@ -4033,6 +4107,22 @@
     let editCurrentAvionId = null;
     let editCurrentTaskId = null;
     const MAINTENIX_URL = "https://maintenix.lan.com/maintenix/common/ToDoList.jsp";
+
+    // Estados de avance de una tarea. El badge se muestra al principio del título.
+    // "cerrado" equivale a done=true; el resto deja la tarea abierta con un estado.
+    const TASK_STATUS = {
+        start:    { label: 'START',          colorClass: 'start',    done: false }, // solo indica inicio, no completa
+        cerrado:  { label: 'CERRADO',        colorClass: 'cerrado',  done: true  },
+        pausado:  { label: 'PAUSADO',        colorClass: 'pausado',  done: true  },
+        diferido: { label: 'DIFERIDO',       colorClass: 'diferido', done: true  },
+        evaluado: { label: 'EVALUADO',       colorClass: 'evaluado', done: true  },
+        avance:   { label: 'AVANCE PARCIAL', colorClass: 'avance',   done: true  },
+        otro:     { label: 'OTRO',           colorClass: 'otro',     done: false }  // se define con el checkbox del modal
+    };
+    const OTRO_MAX_LEN = 30;
+    let statusCurrentAvionId = null;
+    let statusCurrentTaskId = null;
+    let statusCurrentKey = null;
 
     let currentViewMode = 'default';
     let currentTechFilter = localStorage.getItem('pd_ver_a_filter') || '';
@@ -6348,6 +6438,7 @@
 
     function isShiftLockedForMe() {
         if (shiftState.estado !== 'cerrado') return false;
+        if (esSuper()) return false; // El super admin puede editar turnos cerrados
         return shiftState.cerradoPor !== myEmail; // Solo puede editar quien lo cerró
     }
 
@@ -6364,7 +6455,7 @@
         // lista que se descartó al re-atarla.
         asegurarEquipoLigado();
         if (isShiftLockedForMe()) {
-            alert("🔒 ESTE TURNO ESTÁ CERRADO. Solo quien cerró el turno puede modificarlo.");
+            alert("🔒 ESTE TURNO ESTÁ CERRADO. Solo quien cerró el turno o un super admin puede modificarlo.");
             return true;
         }
         return false;
@@ -7310,7 +7401,7 @@
         // consulta del turno donde realmente va a caer.
         const cab = await get(ref(db, ruta.replace('/aviones', '/header')));
         const cabData = cab.val() || {};
-        if (cabData.estado === 'cerrado' && cabData.cerradoPor !== myEmail) {
+        if (cabData.estado === 'cerrado' && cabData.cerradoPor !== myEmail && !esSuper()) {
             return showConfirm('🔒 EL TURNO ' + turnoTxt + ' ESTÁ CERRADO POR ' +
                 String(cabData.cerradoPor).toUpperCase() + '.', null);
         }
@@ -7453,7 +7544,7 @@
         btns.forEach(btnLock => {
             if (btnLock) {
                 if (shiftState.estado === 'cerrado') {
-                    if (shiftState.cerradoPor === myEmail) {
+                    if (shiftState.cerradoPor === myEmail || esSuper()) {
                         btnLock.querySelector('.btn-lbl').innerText = "ABRIR TURNO";
                         btnLock.style.backgroundColor = "var(--help)";
                         btnLock.style.color = "var(--surface)";
@@ -7485,16 +7576,14 @@
     function toggleLockShift() {
         if (!puedeLiderar()) return showConfirm('ABRIR O CERRAR EL TURNO ES DEL TEAM LEADER.', null);
         if (shiftState.estado === 'cerrado') {
-            if (shiftState.cerradoPor === myEmail) {
+            if (shiftState.cerradoPor === myEmail || esSuper()) {
                 showConfirm("¿ABRIR TURNO? Otros líderes y técnicos podrán editar.", () => {
-                    dbSet(ref(db, `${getBasePath()}/header/estado`), 'abierto', 'ABRIR TURNO');
-                    dbSet(ref(db, `${getBasePath()}/header/cerradoPor`), '', 'ABRIR TURNO');
+                    dbUpd(ref(db, `${getBasePath()}/header`), { estado: 'abierto', cerradoPor: '' }, 'ABRIR TURNO');
                 });
             }
         } else {
             showConfirm("¿CERRAR TURNO? Nadie más podrá hacer cambios para este día, y los técnicos no podrán completar tareas, hasta que el Team Leader que cierre este turno lo vuelva a abrir.", () => {
-                dbSet(ref(db, `${getBasePath()}/header/estado`), 'cerrado', 'CERRAR TURNO');
-                dbSet(ref(db, `${getBasePath()}/header/cerradoPor`), myEmail, 'CERRAR TURNO');
+                dbUpd(ref(db, `${getBasePath()}/header`), { estado: 'cerrado', cerradoPor: myEmail }, 'CERRAR TURNO');
             });
         }
     }
@@ -8977,6 +9066,8 @@
         const activityTime = avion.isActivity && (avion.start || avion.end)
             ? `<span class="activity-time-badge">🕒 ${escapeHtml(buildTimesLabel(avion.start, avion.end))}</span> `
             : '';
+        const statusBadge = getStatusBadgeHTML(t);
+        const statusComment = t.estadoComment ? `<div class="task-comment"><strong>ESTADO:</strong> ${escapeHtml(t.estadoComment)}</div>` : '';
         
         // El rol 'usuario' es solo lectura. El planner programa pero NO completa
         // tareas: por eso son dos preguntas distintas y no una sola ("¿es TL?").
@@ -8989,7 +9080,7 @@
         const puedeEditarTarea = !locked && puedePlanificarEn(equipoT);
         const toggleClick = puedeCompletarTarea ? `onclick="toggleTask(${Number(avion.id)}, ${Number(t.id)})"` : "";
         const toggleCursor = puedeCompletarTarea ? "" : "cursor: default; opacity: 0.6;";
-        const toggleHtml = puedeCompletarTarea ? `<div class="status-toggle no-print" ${toggleClick} style="${toggleCursor}">✓</div>` : '';
+        const toggleHtml = puedeCompletarTarea ? `<div class="status-toggle no-print" ${toggleClick} style="${toggleCursor}" title="Cambiar estado de la tarea">✓</div>` : '';
 
         let actionButtonsHtml = '';
         if (puedeCompletarTarea || puedeEditarTarea) {
@@ -9014,14 +9105,16 @@
             }
         }
 
+        const statusClass = t.estado && TASK_STATUS[t.estado] ? ` task-status-${escapeAttr(t.estado)}` : '';
         return `
-            <div class="task-item ${t.done ? 'completed' : ''} ${t.atencion ? (t.alertaByTL ? 'alerta-tl' : 'alerta-tech') : ''}" data-avion-id="${escapeAttr(avion.id)}" data-task-id="${escapeAttr(t.id)}">
+            <div class="task-item ${t.done ? 'completed' : ''} ${t.atencion ? (t.alertaByTL ? 'alerta-tl' : 'alerta-tech') : ''}${statusClass}" data-avion-id="${escapeAttr(avion.id)}" data-task-id="${escapeAttr(t.id)}">
                 ${toggleHtml}
                 <div class="task-main">
                     <div class="task-info">
-                        <div class="task-desc">${planePrefix}${activityTime}${cleanDesc}${tangoDisplay} ${atencionLabel}${shareBadgeHtml}</div>
+                        <div class="task-desc">${statusBadge}${planePrefix}${activityTime}${cleanDesc}${tangoDisplay} ${atencionLabel}${shareBadgeHtml}</div>
                         ${t.techs ? `<div class="task-techs">${escapeHtml(t.techs)}</div>` : ''}
                         ${t.comment ? `<div class="task-comment"><strong>NOTA:</strong> ${escapeHtml(t.comment)}</div>` : ''}
+                        ${statusComment}
                     </div>
                     <div class="action-bar no-print">
                         ${actionButtonsHtml}
@@ -9271,20 +9364,149 @@
         if(checkLock()) return;
         const avion = avionEditable(aId); if (!avion) return;
         const tarea = (avion.tareas || []).find(t => t.id == tId); if (!tarea) return;
-        if (!tarea.done) {
-            showConfirm("¿CONFIRMAS QUE ESTA TAREA ESTÁ COMPLETADA Y CERRADA?", () => {
-                tarea.atencion = false; tarea.done = true;
-                animateComplete(aId, tId, avion);
-            });
-        } else {
+        if (tarea.done) {
             showConfirm("¿CONFIRMAS QUE QUIERAS REABRIR ESTA TAREA?", () => {
                 tarea.done = false;
-                animateReopen(aId, tId, avion);
+                tarea.estado = '';
+                tarea.estadoOtro = '';
+                animateReopen(aId, tId, avion, { done: false, estado: null, estadoOtro: null, estadoComment: '' });
             });
+        } else {
+            // Ahora "completar" abre un modal de estado: no es solo cerrar.
+            openTaskStatusModal(aId, tId);
         }
     }
 
-    function animateComplete(aId, tId, avion) {
+    function openTaskStatusModal(aId, tId) {
+        if (checkLock()) return;
+        const avion = avionEditable(aId); if (!avion) return;
+        const tarea = (avion.tareas || []).find(t => t.id == tId); if (!tarea) return;
+        statusCurrentAvionId = aId;
+        statusCurrentTaskId = tId;
+        const grid = document.getElementById('status-grid');
+        const otroWrap = document.getElementById('status-otro-wrap');
+        const otroInput = document.getElementById('status-otro-input');
+        const otroCheck = document.getElementById('status-otro-completa');
+        const commentInput = document.getElementById('status-comment-input');
+        grid.innerHTML = '';
+        const sinBtn = document.createElement('button');
+        sinBtn.type = 'button';
+        sinBtn.className = 'status-btn ' + (!tarea.estado ? ' selected' : '');
+        sinBtn.textContent = 'SIN ESTADO';
+        sinBtn.dataset.status = '';
+        sinBtn.onclick = () => selectTaskStatus('');
+        grid.appendChild(sinBtn);
+        Object.keys(TASK_STATUS).forEach(key => {
+            const cfg = TASK_STATUS[key];
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'status-btn ' + cfg.colorClass + (tarea.estado === key ? ' selected' : '');
+            btn.textContent = cfg.label;
+            btn.dataset.status = key;
+            btn.onclick = () => selectTaskStatus(key);
+            grid.appendChild(btn);
+        });
+        statusCurrentKey = tarea.estado || '';
+        if (statusCurrentKey === 'otro') {
+            otroWrap.classList.add('visible');
+            otroInput.value = tarea.estadoOtro || '';
+            otroCheck.checked = !!tarea.done;
+        } else {
+            otroWrap.classList.remove('visible');
+            otroInput.value = '';
+            otroCheck.checked = false;
+        }
+        commentInput.value = tarea.estadoComment || '';
+        document.getElementById('task-status-modal').style.display = 'block';
+        setTimeout(() => { if (statusCurrentKey === 'otro') otroInput.focus(); }, 60);
+    }
+
+    function selectTaskStatus(key) {
+        statusCurrentKey = key;
+        document.querySelectorAll('#status-grid .status-btn').forEach(b => b.classList.toggle('selected', b.dataset.status === key));
+        const otroWrap = document.getElementById('status-otro-wrap');
+        if (key === 'otro') {
+            otroWrap.classList.add('visible');
+            setTimeout(() => document.getElementById('status-otro-input').focus(), 50);
+        } else {
+            otroWrap.classList.remove('visible');
+        }
+    }
+
+
+    function saveTaskStatus() {
+        const avion = avionEditable(statusCurrentAvionId); if (!avion) return;
+        const tarea = (avion.tareas || []).find(t => t.id == statusCurrentTaskId); if (!tarea) return;
+        if (!statusCurrentKey && statusCurrentKey !== '') return showConfirm('SELECCIONA UN ESTADO.', null);
+        const guardarEstado = statusCurrentKey;
+        const guardarAvionId = statusCurrentAvionId;
+        const guardarTareaId = statusCurrentTaskId;
+        closeTaskStatusModal();
+        if (guardarEstado === '') {
+            // Quitar estado: limpiar campos y reabrir si estaba cerrado
+            tarea.estado = '';
+            tarea.estadoOtro = '';
+            tarea.estadoComment = '';
+            tarea.done = false;
+            render();
+            localMutation = true;
+            guardarMarcaTarea(guardarAvionId, guardarTareaId, {
+                done: false, atencion: tarea.atencion,
+                estado: null, estadoOtro: null, estadoComment: null
+            }).then(() => showToast('✅ ESTADO BORRADO'))
+              .catch((e) => {
+                  console.error('ERROR AL BORRAR ESTADO:', e);
+                  showConfirm('NO SE PUDO BORRAR EL ESTADO. REVISA LA CONSOLA (F12) O INTENTA DE NUEVO.', null);
+              });
+            return;
+        }
+        const cfg = TASK_STATUS[guardarEstado];
+        let estadoOtro = '';
+        let otroCompleta = false;
+        if (guardarEstado === 'otro') {
+            estadoOtro = document.getElementById('status-otro-input').value.trim().toUpperCase();
+            if (!estadoOtro) return showConfirm('ESCRIBE EL ESTADO.', null);
+            if (estadoOtro.length > OTRO_MAX_LEN) return showConfirm('MÁXIMO ' + OTRO_MAX_LEN + ' CARACTERES.', null);
+            otroCompleta = document.getElementById('status-otro-completa').checked;
+        }
+        const estadoComment = document.getElementById('status-comment-input').value.trim().toUpperCase();
+        if (estadoComment.length > 200) return showConfirm('MÁXIMO 200 CARACTERES EN LA NOTA.', null);
+        tarea.estado = guardarEstado;
+        tarea.estadoOtro = estadoOtro;
+        tarea.estadoComment = estadoComment;
+        tarea.done = guardarEstado === 'otro' ? otroCompleta : cfg.done;
+        if (tarea.done) tarea.atencion = false;
+        render(); // feedback inmediato en pantalla
+        if (tarea.done) {
+            animateComplete(guardarAvionId, guardarTareaId, avion, { estado: guardarEstado, estadoOtro: estadoOtro, estadoComment: estadoComment });
+        } else {
+            localMutation = true;
+            guardarMarcaTarea(guardarAvionId, guardarTareaId, {
+                done: false, atencion: tarea.atencion,
+                estado: guardarEstado, estadoOtro: estadoOtro, estadoComment: estadoComment
+            }).then(() => showToast(`✅ ESTADO ${cfg.label} GUARDADO`))
+              .catch((e) => {
+                  console.error('ERROR AL GUARDAR ESTADO:', e);
+                  showConfirm('NO SE PUDO GUARDAR EL ESTADO. REVISA LA CONSOLA (F12) O INTENTA DE NUEVO.', null);
+              });
+        }
+    }
+
+    function closeTaskStatusModal() {
+        document.getElementById('task-status-modal').style.display = 'none';
+        statusCurrentAvionId = null;
+        statusCurrentTaskId = null;
+        statusCurrentKey = null;
+    }
+
+    function getStatusBadgeHTML(t) {
+        if (!t.estado || !TASK_STATUS[t.estado]) return '';
+        const cfg = TASK_STATUS[t.estado];
+        const texto = t.estado === 'otro' ? (t.estadoOtro || 'OTRO') : cfg.label;
+        return `<span class="status-badge ${cfg.colorClass}">${escapeHtml(texto)}</span>`;
+    }
+
+    function animateComplete(aId, tId, avion, extra) {
         const el = document.querySelector(`.task-item[data-avion-id="${aId}"][data-task-id="${tId}"]`);
         let delay = 100;
         if (el) {
@@ -9311,11 +9533,12 @@
         }
         setTimeout(() => {
             localMutation = true;
-            guardarMarcaTarea(aId, tId, { done: true, atencion: false });
+            const payload = Object.assign({ done: true, atencion: false }, extra || {});
+            guardarMarcaTarea(aId, tId, payload);
         }, delay);
     }
 
-    function animateReopen(aId, tId, avion) {
+    function animateReopen(aId, tId, avion, extra) {
         const el = document.querySelector(`.task-item[data-avion-id="${aId}"][data-task-id="${tId}"]`);
         let delay = 100;
         if (el) {
@@ -9330,7 +9553,8 @@
         }
         setTimeout(() => {
             localMutation = true;
-            guardarMarcaTarea(aId, tId, { done: false });
+            const payload = Object.assign({ done: false }, extra || {});
+            guardarMarcaTarea(aId, tId, payload);
         }, delay);
     }
 
@@ -10527,7 +10751,7 @@
         return get(ref(db, base + '/header')).then(cab => {
             const h = (cab && cab.val()) || {};
             // No se pisa un turno cerrado por otro: el TL de ese equipo manda.
-            if (h.estado === 'cerrado' && h.cerradoPor && h.cerradoPor !== myEmail) {
+            if (h.estado === 'cerrado' && h.cerradoPor && h.cerradoPor !== myEmail && !esSuper()) {
                 throw new Error('EL TURNO DE ' + String(equipoNombre(team)).toUpperCase() + ' ESTÁ CERRADO POR ' + String(h.cerradoPor).toUpperCase());
             }
             let listaFinal = null;
@@ -11463,7 +11687,12 @@
                                 const descMatch = task.desc && task.desc.toLowerCase().includes(q);
                                 const commMatch = task.comment && task.comment.toLowerCase().includes(q);
                                 const techMatch = task.techs && task.techs.toLowerCase().includes(q);
-                                if (tangoMatch || descMatch || commMatch || techMatch || exactWpMatch) {
+                                const estadoMatch = task.estado && TASK_STATUS[task.estado] && (
+                                    TASK_STATUS[task.estado].label.toLowerCase().includes(q) ||
+                                    (task.estadoOtro || '').toLowerCase().includes(q)
+                                );
+                                const estadoCommentMatch = task.estadoComment && task.estadoComment.toLowerCase().includes(q);
+                                if (tangoMatch || descMatch || commMatch || techMatch || exactWpMatch || estadoMatch || estadoCommentMatch) {
                                     taskMatches.push(task);
                                 }
                             }
@@ -11648,6 +11877,7 @@
         openAddMessageModal, openEditMessage, saveMessageFromModal, deleteMessageFromModal,
         openEditAvionModal, saveEditAvion, confirmDeleteAvion,
         openAddTaskModal, saveAddTask, openEditTaskModal, saveEditTask, confirmDeleteTask,
+        openTaskStatusModal, selectTaskStatus, saveTaskStatus, closeTaskStatusModal, getStatusBadgeHTML,
         abrirModalCompartidas, compartirTareaActual, retirarCompartida, aceptarCompartida, rechazarCompartida,
         crearEnvioCompartido,
         abrirPanelTareaCompartida, limpiarAddTaskLock, irATurnoCompartido, cambioDestinoCompartida,
