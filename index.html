@@ -1745,7 +1745,13 @@
             linkAyuda = document.getElementById('instalar-help-link');
             listo = true;
 
-            // Se ofrece igual aunque ya esté instalada: permite reinstalar/actualizar la PWA.
+            const esStandalone = yaInstalada();
+            let controladorActual = false;
+            try { controladorActual = !!(navigator.serviceWorker && navigator.serviceWorker.controller && String(navigator.serviceWorker.controller.scriptURL).indexOf('sw.js') > -1); } catch (e) {}
+            // Si carga desde su propia PWA instalada, no se muestra nada.
+            if (esStandalone && controladorActual) return;
+            // Modo "PWA antigua": standalone sin controlador actual -> mensaje bloqueado, sin cerrar.
+            const modoAntiguo = esStandalone && !controladorActual;
 
             var iosEs = esIOS();
 
@@ -1779,6 +1785,14 @@
                     mostrarAyuda(true);
                     linkAyuda.hidden = true;
                 });
+            }
+
+            // Modo PWA antigua: mensaje bloqueado, sin opción de cerrar.
+            if (modoAntiguo) {
+                if (cerrar) cerrar.style.display = 'none';
+                if (linkAyuda) linkAyuda.hidden = true;
+                mostrarAyuda(true);
+                return;
             }
 
             // Ya lo habían cerrado antes: se deja solo el link para recuperarlo.
