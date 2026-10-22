@@ -1753,7 +1753,11 @@
                     actualizarBotonTop();
                 });
             } else if (esIOS()) {
-                mostrarAyuda(true);
+                if (typeof showConfirm === 'function') {
+                    showConfirm('PARA INSTALAR ALISTEO EN IPHONE:\\n\\n1. Toca el botón Compartir (cuadrado con flecha hacia arriba).\\n2. Desliza y toca "Añadir a pantalla de inicio".\\n3. Toca "Añadir".\\n\\nQuedará como una app más en tu teléfono.', null);
+                } else {
+                    alert('PARA INSTALAR: toca Compartir y luego "Añadir a pantalla de inicio".');
+                }
             }
         };
 
