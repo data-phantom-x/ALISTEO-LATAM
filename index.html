@@ -1745,7 +1745,7 @@
             linkAyuda = document.getElementById('instalar-help-link');
             listo = true;
 
-            if (yaInstalada()) return;      // abierta desde el ícono: no hay nada que ofrecer
+            // Se ofrece igual aunque ya esté instalada: permite reinstalar/actualizar la PWA.
 
             var iosEs = esIOS();
 
