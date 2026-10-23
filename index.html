@@ -156,7 +156,8 @@
             box-shadow: 0 2px 8px color-mix(in srgb, var(--black) 4%, transparent);
         }
 
-        .top-bar-left { display: flex; gap: 6px; align-items: center; }
+        .top-bar-left { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .top-bar-actions { display: flex; gap: 6px; align-items: center; flex: none; }
         .brand-alisteo { display: inline-flex; align-items: center; text-decoration: none; flex: none !important; margin-right: 8px; cursor: default; padding-right: 8px; border-right: 1px solid var(--border-soft); }
         .brand-alisteo img { height: 38px; width: auto; }
         /* Selector de equipo (barra superior) */
@@ -164,11 +165,15 @@
             display: none; align-items: center; gap: 5px; height: var(--button-height);
             background: var(--surface); border: 1px solid var(--primary);
             border-radius: var(--button-radius); padding: 0 5px 0 5px; box-sizing: border-box;
+            flex: none; width: auto;
         }
         select.team-select {
             border: none !important; background: transparent !important; box-shadow: none !important;
-            height: auto; padding: 0 16px 0 2px; margin: 0; font-size: 10px; font-weight: 800;
-            color: var(--primary); max-width: 150px; min-width: 90px; flex: 1;
+            height: auto; padding: 0 0 0 6px; margin: 0; font-size: 10px; font-weight: 800;
+            color: var(--primary); width: 64px; min-width: 0; max-width: 240px; flex: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%232A0087' d='M1 3l4 4 4-4z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 4px center;
+            appearance: none; -webkit-appearance: none;
         }
 
         /* Reloj Inteligente (Mejorado) */
@@ -204,7 +209,7 @@
         }
         .btn-top:hover { opacity: 0.9; }
         #btn-mode-toggle {
-            width: auto; min-width: 140px; max-width: 240px; padding: 0 10px;
+            width: auto; min-width: min-content; max-width: 240px; padding: 0 10px;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
@@ -284,6 +289,21 @@
             padding: 10px; border-radius: 12px 0 12px 0; margin-bottom: 8px;
             transition: opacity 0.3s;
         }
+        .lock-status-panel {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 14px;
+            background: color-mix(in srgb, var(--danger) 10%, transparent);
+            border: 1px solid var(--danger);
+            border-radius: var(--button-radius);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .lock-status-icon { font-size: 26px; line-height: 1; }
+        .lock-status-text { font-weight: 700; color: var(--text-main); font-size: 13px; }
+        .lock-status-hint { font-size: 11px; color: var(--text-muted); }
 
         /* La búsqueda vive en la fila del título: aprovecha el ancho libre y
            elimina una banda completa, que es de donde sale el ahorro de alto. */
@@ -291,6 +311,11 @@
             display: flex; justify-content: space-between; align-items: center;
             gap: 12px; margin-bottom: 9px;
         }
+        .leader-panel-toggle {
+            display: none; background: transparent; border: none; color: var(--primary);
+            font-size: 12px; cursor: pointer; padding: 0 4px; transition: transform 0.2s;
+        }
+        .header-controls.collapsed .leader-panel-toggle { transform: rotate(-90deg); }
 
         /* Título de sección con filete que se prolonga hacia la derecha. */
         .leader-title {
@@ -341,7 +366,7 @@
             display: flex; gap: 8px; flex-wrap: wrap;
             margin: 9px 0 0 !important; padding-top: 9px; border-top: 1px solid var(--border-tech);
         }
-        .leader-add-buttons button { box-shadow: none; gap: 4px; }
+        .leader-add-buttons button { box-shadow: none; gap: 4px; flex: 1 1 200px; max-width: 100%; }
         .leader-add-buttons .btn-txt { font-size: 9px; }
         /* Jerarquía: agregar avión es la acción principal, las otras la acompañan. */
         .leader-add-buttons button {
@@ -859,9 +884,13 @@
         }
         
         .modal-header { font-weight: 800; font-size: 1.1em; margin-bottom: 15px; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 8px; }
-        .modal-content input[type="text"], .modal-content select { width: 100%; box-sizing: border-box; }
-        .modal-row { display: contents; gap: 12px; }
-        .modal-row > input { margin-bottom: 0 !important; }
+        .modal-content input[type="text"], .modal-content select { width: 100%; box-sizing: border-box; margin-bottom: 12px; }
+        .modal-content input[type="text"]:last-child, .modal-content select:last-child { margin-bottom: 0; }
+        .modal-row { display: flex; gap: 12px; margin-bottom: 12px; }
+        .modal-row > input, .modal-row > select { flex: 1; margin-bottom: 0 !important; }
+        .modal-content > .tech-grid { margin-bottom: 12px; }
+        .modal-content > .wp-sec { margin-top: 4px; margin-bottom: 8px; }
+        .modal-content > .wp-drop { margin-bottom: 12px; }
 
         .tech-grid {
             display: flex; flex-wrap: wrap;
@@ -1094,10 +1123,16 @@
             .fab-unlock { display: flex; }
             body.mobile-locked .action-bar button,
             body.mobile-locked .avion-actions button,
-            body.mobile-locked .avion-btn { pointer-events: none; opacity: 0.35; filter: grayscale(0.6); }
+            body.mobile-locked .avion-btn,
+            body.mobile-locked .drag-handle { pointer-events: none; opacity: 0.35; filter: grayscale(0.6); }
         }
         @media (min-width: 901px), (orientation: landscape) {
             .fab-unlock { display: none !important; }
+            .leader-panel-toggle { display: none !important; }
+            .header-controls.collapsed .leader-grid,
+            .header-controls.collapsed #leader-add-buttons,
+            .header-controls.collapsed .panel-team-row,
+            .header-controls.collapsed #search-results { display: block !important; }
         }
 
         /* AJUSTES PARA CELULARES */
@@ -1123,7 +1158,10 @@
             .top-bar { flex-direction: column; gap: 8px; }
             .top-bar-left { width: 100%; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 5px; }
             .top-bar-left > * { flex: 1; min-width: 0; }
-            #btn-mode-toggle { flex: 1 1 0; max-width: none; min-width: 0; }
+            .top-bar-left > .team-switcher { flex: none; width: auto; min-width: 0; }
+            .top-bar-actions { flex: 0 1 auto; flex-wrap: nowrap; justify-content: center; min-width: 0; gap: 6px; }
+            .top-bar-actions button { width: auto; flex: none; padding: 0 8px; font-size: 10px; white-space: nowrap; }
+            #btn-mode-toggle { flex: 0 1 auto; max-width: 240px; min-width: min-content; }
             .live-clock { display: grid; grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr); width: 100%; height: auto; padding: 0; position: static; transform: none; gap: 4px; margin-left: 0; }
             .clock-zone { min-width: 0; gap: 7px; padding: 4px 5px; }
             .clock-divider { height: 24px; }
@@ -1137,18 +1175,33 @@
             .view-filters-wrap > button { grid-column: 1 / -1; justify-self: center; margin-top: 2px; }
             
             .header-controls { padding: 10px; }
-            /* La lupa se queda en la fila del título, a su costado. Antes bajaba a una
-               fila propia y el panel crecía una banda completa solo para un ícono. */
-            .leader-panel-header { flex-direction: row; gap: 8px; align-items: center; }
+            .header-controls.collapsed .leader-grid,
+            .header-controls.collapsed #leader-add-buttons,
+            .header-controls.collapsed .panel-team-row,
+            .header-controls.collapsed #search-results { display: none !important; }
+            .header-controls.collapsed { padding-bottom: 10px; }
+            .leader-panel-header { flex-direction: row; gap: 8px; align-items: center; cursor: pointer; }
+            .leader-panel-toggle { display: inline-flex; }
             .leader-title { flex: 1 1 auto; min-width: 0; }
             .leader-title::after { display: none; }
-            .leader-search { width: auto; flex: 0 0 auto; justify-content: flex-end; }
-            /* Abierta, la lupa se lleva la mayor parte de la fila y el título
-               se recorta con puntos suspensivos antes que empujarla fuera. */
+            .leader-search { width: auto; flex: 0 0 auto; justify-content: flex-end; pointer-events: auto; }
             .leader-search.is-open { flex: 3 1 auto; min-width: 0; }
             .leader-panel-header .search-toggle,
             .leader-panel-header .search-clear { width: var(--button-height); flex: none; }
             .leader-search.is-open .search-field { flex: 1 1 auto; width: auto; min-width: 80px; max-width: none; }
+            /* En móvil los botones de acción del panel quedan debajo del campo de texto, en una sola fila */
+            #leader-field-jefe, #leader-field-techs { flex-wrap: wrap; align-items: center; gap: 6px; }
+            #leader-field-jefe .control-label, #leader-field-techs .control-label { flex: 0 0 auto; min-width: 0; margin-bottom: 0; }
+            #leader-field-jefe input, #leader-field-techs input { flex: 1 1 auto !important; min-width: 100px !important; margin-bottom: 2px; }
+            #leader-field-jefe button, #leader-field-techs button { flex: 1 1 auto !important; min-width: 0 !important; max-width: none !important; height: var(--button-height) !important; font-size: 10px !important; padding: 0 6px !important; margin-top: 6px; }
+            #leader-field-jefe input + button,
+            #leader-field-techs input + button,
+            #leader-field-techs .btn-agregar,
+            #leader-field-techs .btn-listado,
+            #leader-field-jefe .btn-shift { flex-basis: 100%; }
+            #btn-lock-shift-mobile { display: inline-flex; }
+            .btn-shift .btn-lbl, .btn-agregar .btn-lbl, .btn-listado .btn-lbl { font-size: 10px !important; }
+            .btn-shift, .btn-agregar, .btn-listado { max-width: none !important; }
             .admin-modal-content { width: 98% !important; height: 94vh; max-height: 94vh; min-height: 0; margin: 3vh auto; }
             .admin-modal-layout { grid-template-columns: minmax(0, 1fr); }
             .admin-user-list { flex: 0 0 auto; height: 300px; max-height: 42vh; }
@@ -1947,10 +2000,12 @@
             <div id="team-switcher" class="team-switcher">
                 <select id="team-select" class="team-select" onchange="switchTeam(this.value)" title="Equipo que estás viendo"></select>
             </div>
-            <button type="button" id="btn-logout" class="btn-danger-outline" onclick="logoutFull()" style="width:28px; min-width:28px; padding:0; display:none; font-size:14px; flex:none;">✖</button>
-            <button type="button" id="top-install-btn" class="btn-outline no-print" onclick="instalarPwaTop()" title="Instalar ALISTEO" style="display:none; width:28px; min-width:28px; padding:0; font-size:14px; flex:none;">📲</button>
-            <button class="btn-outline" onclick="window.print()" title="Imprimir" style="width:28px; min-width:28px; padding:0; font-size:14px; flex:none;">🖨️</button>
-            <button type="button" id="btn-admin" class="btn-outline" onclick="openAdminModal()" title="Administrar usuarios autorizados" style="display:none; padding:0 10px; font-size:10px;">⚙ ADMIN</button>
+            <div class="top-bar-actions">
+                <button type="button" id="btn-logout" class="btn-danger-outline" onclick="logoutFull()" style="width:28px; min-width:28px; padding:0; display:none; font-size:14px; flex:none;">✖</button>
+                <button type="button" id="top-install-btn" class="btn-outline no-print" onclick="instalarPwaTop()" title="Instalar ALISTEO" style="display:none; width:28px; min-width:28px; padding:0; font-size:14px; flex:none;">📲</button>
+                <button class="btn-outline" onclick="window.print()" title="Imprimir" style="width:28px; min-width:28px; padding:0; font-size:14px; flex:none;">🖨️</button>
+                <button type="button" id="btn-admin" class="btn-outline" onclick="openAdminModal()" title="Administrar usuarios autorizados" style="display:none; padding:0 10px; font-size:10px;">⚙ ADMIN</button>
+            </div>
         </div>
         <div id="live-clock" class="live-clock"></div>
     </div>
@@ -1987,9 +2042,10 @@
     </div>
 
     <div class="header-controls leader-only no-print">
-        <div class="leader-panel-header">
+        <div class="leader-panel-header" onclick="toggleLeaderPanel(event)">
             <div class="leader-title"><span class="leader-title-txt" id="leader-panel-title">⚙️ PANEL DE CONTROL</span></div>
-            <div class="leader-search" id="leader-search">
+            <button type="button" class="leader-panel-toggle hide-desktop" aria-label="Desplegar panel">▼</button>
+            <div class="leader-search" id="leader-search" onclick="event.stopPropagation()">
                 <button type="button" id="btn-search-toggle" class="search-toggle" onclick="toggleSearch()" title="Buscar" aria-label="Buscar">🔍</button>
                 <input type="text" id="global-search-input" class="search-field" placeholder="BUSCAR SOLO ÚLTIMOS 30 DÍAS - TAREA, TANGO, WP, COMENTARIO...">
                 <button class="btn-outline search-clear" onclick="closeSearch()" title="Cerrar búsqueda" style="display:none;" id="btn-clear-search">✖</button>
@@ -1997,7 +2053,7 @@
         </div>
 
         <div class="panel-team-row no-print" id="panel-team-row" style="display:none;">
-            <span class="panel-team-label">🗂️ VES TODOS LOS EQUIPOS · ELIGE CUÁL ESTÁS GESTIONANDO:</span>
+            <span class="panel-team-label">🗂️ VES TODOS · ELIGE CUÁL GESTIONAS:</span>
             <select id="panel-team-sel" class="panel-team-sel" onchange="cambiarEquipoGestionado(this.value)" title="Todo lo que edites aquí va a la programación de este equipo"></select>
             <span class="panel-team-hint" id="panel-team-hint"></span>
         </div>
@@ -2009,7 +2065,7 @@
                 <span class="control-label">Team Leader</span>
                 <input type="text" id="in-jefe" placeholder="NOMBRE DEL TEAM LEADER" list="tl-sugerencias" autocomplete="off" onfocus="updateTlSuggestions()" oninput="updateHeader()" onchange="commitHeader()" onkeypress="if(event.key === 'Enter') { commitHeader(); this.blur(); }">
                 <datalist id="tl-sugerencias"></datalist>
-                <button id="btn-lock-shift-mobile" class="btn-danger-outline btn-shift" onclick="toggleLockShift()" style="padding: 0 10px; display:none; align-items:center; gap:2px;"><span class="btn-ico">🔒</span><span class="btn-lbl">CERRAR TURNO</span></button>
+                <button id="btn-close-shift-mobile" class="btn-danger-outline btn-shift" onclick="toggleLockShift()" style="padding: 0 10px; display:none; align-items:center; gap:2px;"><span class="btn-ico">🔒</span><span class="btn-lbl">CERRAR TURNO</span></button>
                 <button class="btn-outline btn-shift" id="btn-gestionar-turno" onclick="openManageShiftModal()" style="padding: 0 10px; display:inline-flex; align-items:center; gap:2px;"><span class="btn-ico">⚠️</span><span class="btn-lbl">GESTIONAR TURNO</span></button>
             </div>
             
@@ -2024,12 +2080,18 @@
             <div id="tech-pills-container"></div>
         </div>
 
-        
+        <div id="lock-status-panel" class="lock-status-panel" style="display:none;">
+            <div class="lock-status-icon">🔒</div>
+            <div class="lock-status-text">TURNO CERRADO POR <span id="lock-closed-by"></span></div>
+            <button id="btn-lock-shift-mobile" class="btn-danger-outline btn-shift" onclick="toggleLockShift()" style="padding: 0 16px; display:none; align-items:center; gap:4px;"><span class="btn-ico">🔓</span><span class="btn-lbl">CERRAR TURNO</span></button>
+            <div id="lock-status-hint" class="lock-status-hint"></div>
+        </div>
+
         <div id="leader-add-buttons" class="leader-add-buttons leader-only no-print">
-            <button class="btn-leader" id="btn-add-avion" onclick="openAddAvionModal()" style="flex: 1; min-width: 200px; padding: 0 12px; font-size: 11px; border-radius: var(--button-radius); height: var(--button-height);">✈️<span class="btn-txt">AGREGAR AVIÓN</span></button>
-            <button class="btn-accent" id="btn-add-activity" onclick="openAddActivityModal()" style="flex: 1; min-width: 200px; padding: 0 12px; font-size: 11px; border-radius: var(--button-radius); height: var(--button-height);">⭐<span class="btn-txt">AGREGAR ACTIVIDAD EXTRA</span></button>
-            <button class="btn-accent" id="btn-add-message" onclick="openAddMessageModal()" style="flex: 1; min-width: 200px; padding: 0 12px; font-size: 11px; border-radius: var(--button-radius); height: var(--button-height);">💬<span class="btn-txt">AGREGAR MENSAJE</span></button>
-            <button id="btn-compartidas" onclick="abrirModalCompartidas()" style="flex: 1; min-width: 200px; padding: 0 12px; font-size: 11px; border-radius: var(--button-radius); height: var(--button-height); display: none;">📥<span class="btn-txt" id="btn-compartidas-txt">TAREAS COMPARTIDAS</span></button>
+            <button class="btn-leader" id="btn-add-avion" onclick="openAddAvionModal()" style="padding: 0 12px; font-size: 11px; border-radius: var(--button-radius); height: var(--button-height);">✈️<span class="btn-txt">AGREGAR AVIÓN</span></button>
+            <button class="btn-accent" id="btn-add-activity" onclick="openAddActivityModal()" style="padding: 0 12px; font-size: 11px; border-radius: var(--button-radius); height: var(--button-height);">⭐<span class="btn-txt">AGREGAR ACTIVIDAD EXTRA</span></button>
+            <button class="btn-accent" id="btn-add-message" onclick="openAddMessageModal()" style="padding: 0 12px; font-size: 11px; border-radius: var(--button-radius); height: var(--button-height);">💬<span class="btn-txt">AGREGAR MENSAJE</span></button>
+            <button id="btn-compartidas" onclick="abrirModalCompartidas()" style="padding: 0 12px; font-size: 11px; border-radius: var(--button-radius); height: var(--button-height); display: none;">📥<span class="btn-txt" id="btn-compartidas-txt">TAREAS COMPARTIDAS</span></button>
         </div>
     </div>
 
@@ -2520,7 +2582,7 @@
 
                     <div class="admin-card-title" style="margin-top:12px">EQUIPOS</div>
                     <div id="admin-equipos-global" class="admin-equipos-global" style="display:none;">
-                        <span class="admin-equipos-todos">📚 TODOS LOS EQUIPOS</span>
+                        <span class="admin-equipos-todos">📚 TODOS</span>
                     </div>
                     <div id="admin-equipos-selector">
                         <div class="admin-team-grid" id="admin-equipos-grid"></div>
@@ -2587,7 +2649,7 @@
             <div class="admin-card">
                 <div class="admin-card-title">EQUIPOS</div>
                 <div id="user-modal-equipos-global" class="admin-equipos-global" style="display:none;">
-                    <span class="admin-equipos-todos">📚 TODOS LOS EQUIPOS</span>
+                    <span class="admin-equipos-todos">📚 TODOS</span>
                 </div>
                 <div id="user-modal-equipos-selector">
                     <div class="admin-team-grid" id="user-modal-equipos"></div>
@@ -3075,7 +3137,17 @@
         row.style.display = 'flex';
         sel.innerHTML = lista.map(t => `<option value="${escapeAttr(t)}"${t === currentTeam ? ' selected' : ''}>${escapeHtml(equipoNombre(t))}</option>`).join('');
     }
-    function cambiarEquipoGestionado(team) {
+    async function cambiarEquipoGestionado(team) {
+        // traemos el header antes de ligar el equipo, para que el botón de
+        // abrir/cerrar turno refleje el estado real desde el primer momento
+        try {
+            const refs = turnosRefs[team];
+            if (refs && refs.header) {
+                const h = (await get(refs.header)).val() || {};
+                const d = turnoDatos[team] = turnoDatos[team] || { aviones: [], techs: [], header: {} };
+                d.header = h;
+            }
+        } catch (e) {}
         ligarEquipo(team);
         renderHeaderTodos();
         updateRolSyncButton();
@@ -3084,9 +3156,11 @@
     // ¿Está ese turno cerrado para mí? En la vista de todos se pregunta por el
     // equipo de la tarjeta, no por el que se está gestionando.
     function turnoCerradoPara(t) {
-        if (!vistaTodos) return isShiftLockedForMe();
+        // Para la UI: turno cerrado se considera bloqueado para todos, incluso super.
+        // La lógica de escritura real sigue usando isShiftLockedForMe().
+        if (!vistaTodos) return shiftState.estado === 'cerrado';
         const h = ((turnoDatos[t] || {}).header) || {};
-        return h.estado === 'cerrado' && h.cerradoPor !== myEmail && !esSuper();
+        return h.estado === 'cerrado';
     }
     // El avión que se va a editar. En la vista de todos puede ser de cualquier
     // equipo: se adopta ese equipo (sin cambiar lo que se ve) y se sigue. Si el
@@ -3409,7 +3483,7 @@
         if (mis.length > 1) {
             // La vista de todos va primero: es la que se usa casi siempre cuando
             // se tienen varios equipos.
-            sel.innerHTML = `<option value="${EQUIPO_TODOS}"${vistaTodos ? ' selected' : ''}>📚 TODOS LOS EQUIPOS</option>`
+                sel.innerHTML = `<option value="${EQUIPO_TODOS}"${vistaTodos ? ' selected' : ''}>📚 TODOS</option>`
                 + mis.map(id => `<option value="${escapeAttr(id)}"${(!vistaTodos && id === currentTeam) ? ' selected' : ''}>${escapeHtml(equipoNombre(id))}</option>`).join('');
             wrap.style.display = 'flex';
             wrap.title = vistaTodos
@@ -4313,8 +4387,16 @@
     function toggleMobileUnlock() {
         if (mobileUnlocked) lockMobileActions(); else unlockMobileActions();
     }
+    function toggleLeaderPanel(e) {
+        if (e && e.target && (e.target.closest('.leader-search') || e.target.closest('.leader-panel-toggle') === false && e.target.closest('.leader-panel-header') === false)) return;
+        if (!isMobileView()) return;
+        const panel = document.querySelector('.header-controls');
+        if (panel) panel.classList.toggle('collapsed');
+    }
     // Estado inicial: en móvil, botones bloqueados hasta que el usuario los active
     if (isMobileView()) { document.body.classList.add('mobile-locked'); }
+    // En móvil el panel de control empieza colapsado para no ocupar espacio
+    if (isMobileView()) { const panel = document.querySelector('.header-controls'); if (panel) panel.classList.add('collapsed'); }
 
      function toggleMode() {
         if (panelAbierto) {
@@ -6606,7 +6688,17 @@
     // vista de todos se llama para cada equipo, pero solo se pinta la del que
     // está en pantalla.
     function aplicarHeaderEquipo(team, data) {
-        if (vistaTodos) { ocultarSpinnerCarga(); hideSplash(); return; }
+        if (vistaTodos) {
+            // el header del equipo que se está gestionando en el panel importa
+            // para saber si el turno está cerrado y mostrar el botón de reabrir
+            if (team === currentTeam) {
+                shiftState.estado = (data || {}).estado || 'abierto';
+                shiftState.cerradoPor = (data || {}).cerradoPor || '';
+                actividadGrupoTitulo = (data || {}).actividadTitulo || actividadGrupoTitulo;
+                updateLockUI();
+            }
+            ocultarSpinnerCarga(); hideSplash(); return;
+        }
         seguroCompartidas(publicarIndiceTareas);
         shiftState.estado = data.estado || 'abierto';
         shiftState.cerradoPor = data.cerradoPor || '';
@@ -7537,39 +7629,52 @@
     }
 
     function updateLockUI() {
-        const btns = ['btn-lock-shift-mobile'].map(id => document.getElementById(id)).filter(Boolean);
-        const leaderControls = document.getElementById('leader-controls-grid');
+        const btnOpen = document.getElementById('btn-lock-shift-mobile');
+        const btnClose = document.getElementById('btn-close-shift-mobile');
+        const lockPanel = document.getElementById('lock-status-panel');
+        const lockClosedBy = document.getElementById('lock-closed-by');
+        const lockHint = document.getElementById('lock-status-hint');
+        const leaderGrid = document.getElementById('leader-controls-grid');
         const addButtons = document.getElementById('leader-add-buttons');
-        
-        btns.forEach(btnLock => {
-            if (btnLock) {
-                if (shiftState.estado === 'cerrado') {
-                    if (shiftState.cerradoPor === myEmail || esSuper()) {
-                        btnLock.querySelector('.btn-lbl').innerText = "ABRIR TURNO";
-                        btnLock.style.backgroundColor = "var(--help)";
-                        btnLock.style.color = "var(--surface)";
-                        btnLock.style.border = "none";
-                        btnLock.style.display = "inline-flex";
-                    } else {
-                        btnLock.style.display = "none";
-                    }
+
+        const turnoCerrado = shiftState.estado === 'cerrado';
+        const canReopen = turnoCerrado && (shiftState.cerradoPor === myEmail || esSuper());
+
+        if (turnoCerrado) {
+            if (leaderGrid) leaderGrid.style.display = 'none';
+            if (addButtons) addButtons.style.display = 'none';
+            if (lockPanel) lockPanel.style.display = 'flex';
+            if (lockClosedBy) lockClosedBy.textContent = shiftState.cerradoPor || '';
+
+            if (btnClose) btnClose.style.display = 'none';
+            if (btnOpen) {
+                if (canReopen) {
+                    btnOpen.querySelector('.btn-lbl').innerText = "ABRIR TURNO";
+                    btnOpen.querySelector('.btn-ico').innerText = "🔓";
+                    btnOpen.style.backgroundColor = "var(--help)";
+                    btnOpen.style.color = "var(--surface)";
+                    btnOpen.style.border = "none";
+                    btnOpen.style.display = "inline-flex";
+                    if (lockHint) lockHint.textContent = "Al abrirlo, todos podrán editar nuevamente.";
                 } else {
-                    btnLock.querySelector('.btn-lbl').innerText = "CERRAR TURNO";
-                    btnLock.style.backgroundColor = "";
-                    btnLock.style.color = "";
-                    btnLock.style.border = "";
-                    btnLock.style.display = puedeLiderar() ? "inline-flex" : "none";
+                    btnOpen.style.display = "none";
+                    if (lockHint) lockHint.textContent = `Solo ${shiftState.cerradoPor || 'quien cerró el turno'} puede abrirlo.`;
                 }
             }
-        });
-        
-        const locked = isShiftLockedForMe();
-        if (leaderControls) {
-            leaderControls.style.opacity = locked ? '0.5' : '1';
-            leaderControls.style.pointerEvents = locked ? 'none' : 'auto';
-        }
-        if (addButtons) {
-            addButtons.style.display = locked ? 'none' : 'flex';
+        } else {
+            if (leaderGrid) leaderGrid.style.display = '';
+            if (addButtons) addButtons.style.display = '';
+            if (lockPanel) lockPanel.style.display = 'none';
+            if (btnOpen) btnOpen.style.display = 'none';
+
+            if (btnClose) {
+                btnClose.querySelector('.btn-lbl').innerText = "CERRAR TURNO";
+                btnClose.querySelector('.btn-ico').innerText = "🔒";
+                btnClose.style.backgroundColor = "";
+                btnClose.style.color = "";
+                btnClose.style.border = "";
+                btnClose.style.display = puedeLiderar() ? "inline-flex" : "none";
+            }
         }
     }
 
@@ -9158,12 +9263,12 @@
                 </div>
                 <div class="task-container">
             `;
-            const pendingTasks = tasks.filter(x => !x.task.done);
+            const pendingTasks = ordenarStartPrimero(tasks.filter(x => !x.task.done), x => x.task.estado);
             const completedTasks = tasks.filter(x => x.task.done);
             pendingTasks.forEach(({avion, task}) => { html += generateTaskHTML(avion, task, true); });
             completedTasks.forEach(({avion, task}) => { html += generateTaskHTML(avion, task, true); });
             html += `</div>`;
-            
+
             div.innerHTML = html; container.appendChild(div);
         }
     }
@@ -9200,12 +9305,12 @@
                 </div>
                 <div class="task-container">
             `;
-            const pendingTasks = tasks.filter(x => !x.task.done);
+            const pendingTasks = ordenarStartPrimero(tasks.filter(x => !x.task.done), x => x.task.estado);
             const completedTasks = tasks.filter(x => x.task.done);
             pendingTasks.forEach(({avion, task}) => { html += generateTaskHTML(avion, task, true); });
             completedTasks.forEach(({avion, task}) => { html += generateTaskHTML(avion, task, true); });
             html += `</div>`;
-            
+
             div.innerHTML = html; container.appendChild(div);
         });
     }
@@ -9216,8 +9321,7 @@
         container.innerHTML = '';
         const fragment = document.createDocumentFragment();
         let displayData = JSON.parse(JSON.stringify(listaAMostrar()));
-        const locked = isShiftLockedForMe();
-        const allowOrder = puedePlanificar() && !locked && !vistaTodos && currentViewMode === 'default' && !currentTechFilter;
+        const allowOrder = puedePlanificar() && shiftState.estado !== 'cerrado' && !vistaTodos && currentViewMode === 'default' && !currentTechFilter;
 
         if (currentTechFilter) {
             displayData.forEach(avion => {
@@ -9231,6 +9335,13 @@
         function isAvionAllDone(avion) {
             if (!avion.tareas || avion.tareas.length === 0) return false;
             return avion.tareas.every(t => t.done);
+        }
+        function ordenarStartPrimero(arr, getEstado) {
+            return arr.slice().sort((a, b) => {
+                const ea = (getEstado ? getEstado(a) : a.estado) === 'start' ? 0 : 1;
+                const eb = (getEstado ? getEstado(b) : b.estado) === 'start' ? 0 : 1;
+                return ea - eb;
+            });
         }
 
         if (currentViewMode === 'time') {
@@ -9304,7 +9415,7 @@
             `;
 
             if(avion.tareas) {
-                const pendingTasks = avion.tareas.filter(t => !t.done);
+                const pendingTasks = ordenarStartPrimero(avion.tareas.filter(t => !t.done));
                 const completedTasks = avion.tareas.filter(t => t.done);
                 pendingTasks.forEach(t => { html += generateTaskHTML(avion, t, false, allowOrder); });
                 completedTasks.forEach(t => { html += generateTaskHTML(avion, t, false, allowOrder); });
@@ -9334,7 +9445,7 @@
 
             const groupTasks = [];
             g.lista.forEach(a => (a.tareas || []).forEach(t => groupTasks.push({ avion: a, task: t })));
-            const pendingTasks = groupTasks.filter(x => !x.task.done);
+            const pendingTasks = ordenarStartPrimero(groupTasks.filter(x => !x.task.done), x => x.task.estado);
             const completedTasks = groupTasks.filter(x => x.task.done);
 
             let gHtml = `
@@ -11914,7 +12025,7 @@
         adminAlternarMantenimiento,
         equiposDelPanel, puedoGestionarEquipo, usuariosDeEquipo, avisosEquipoBar,
         doGoogleLogin, logoutFull,
-        deactivateLeaderUI, toggleCleanView, toggleMobileUnlock
+        deactivateLeaderUI, toggleCleanView, toggleMobileUnlock, toggleLeaderPanel
     });
 
     // Listeners estáticos de la Base Global de Técnicos
