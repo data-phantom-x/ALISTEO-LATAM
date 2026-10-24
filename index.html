@@ -4262,6 +4262,14 @@
             configGruposPorEquipo = snapshot.val() || {};
             renderGruposPorEquipoPanel();
         }, (e) => console.warn('config grupos_por_equipo:', e.code)));
+        // Librería maestra de técnicos (BP -> nombre). Se mantiene sincronizada en
+        // todos los navegadores para que los nombres editados apliquen al sincronizar
+        // el rol sin depender de que se haya abierto el modal de técnicos.
+        rolesUnsubs.push(onValue(libreriaTecnicosRef, (snapshot) => {
+            libreriaTecnicos = snapshot.val() || {};
+            renderTechPills();
+            ensureAddTechDatalist();
+        }, (e) => console.warn('libreria_tecnicos:', e.code)));
     }
     // P4 FIX: Esperar a que Firebase restaure la sesión de Google antes de suscribir roles (evita decidir con permisos viejos)
     auth.authStateReady().then(()=> subscribeRoles()).catch(()=> subscribeRoles());
