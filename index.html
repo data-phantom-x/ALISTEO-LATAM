@@ -877,7 +877,7 @@
         #confirm-modal, #prompt-modal { z-index: 1400; }
         
         .modal-content {
-            background-color: var(--surface); padding: 20px;
+            background-color: var(--surface); padding: 20px 20px 20px 20px;
             border: none; width: 90%; max-width: 450px; border-radius: 8px;
             box-shadow: 0 10px 30px color-mix(in srgb, var(--black) 30%, transparent); max-height: 85vh; overflow-y: auto;
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); margin: 0;
@@ -914,15 +914,20 @@
             box-shadow: 0 2px 6px color-mix(in srgb, var(--primary) 20%, transparent);
         }
 
-        .modal-footer { display: flex; gap: 10px; margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border); }
+        .modal-footer {
+            display: flex; gap: 10px; margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border);
+            position: sticky; bottom: 0;
+            background-color: var(--surface);
+            z-index: 2;
+        }
         .btn-modal-action { flex: 1; padding: 0; height: var(--button-height); font-size: 10px; border-radius: var(--button-radius);}
         /* PANEL ADMIN: caja de altura fija, igual que un diálogo de verdad.
            Encabezado, barra de equipo y pie quedan FIJOS (flex: none) y solo el
            cuerpo se desplaza. Así el botón CERRAR nunca queda debajo del borde:
            antes la caja completa se desplazaba y había que bajar hasta encontrarlo. */
         .admin-modal-content {
-            padding: 0 !important; width: 95%; max-width: 860px;
-            height: auto; max-height: 92vh; min-height: 0; margin: 0vh auto;
+            padding: 0 !important; width: 95%; max-width: 700px;
+            height: 90vh; max-height: 90vh; min-height: 0; margin: 0vh auto;
             border-radius: 12px; overflow: hidden; background-color: var(--surface);
             display: flex; flex-direction: column;
         }
@@ -1077,7 +1082,7 @@
            desplegable 6px y lo deja por encima de la etiqueta "EQUIPO:". */
         .admin-team-bar select.admin-team-select { flex: 0 1 auto; width: 210px; min-width: 0; max-width: 300px; margin: 0; }
         .admin-team-bar .team-note { margin: 0; }
-        .admin-search-row { display: flex; gap: 5px; align-items: center; }
+        .admin-search-row { display: flex; gap: 5px; }
         .admin-search-row .admin-search { flex: 1; min-width: 0; }
         .admin-search-row .team-btn { flex: 0 0 auto; }
         .admin-team-nombre { display: none; font-size: 11px; font-weight: 800; color: var(--primary); padding: 0 4px; }
@@ -1117,6 +1122,78 @@
         .team-member.locked { opacity: .8; }
         .team-add-row { display: flex; gap: 5px; margin-top: 7px; }
         .team-note { font-size: 9px; color: var(--comment); margin-top: 6px; line-height: 1.4; }
+
+        /* ── PESTAÑAS DEL PANEL ADMIN ── */
+        .admin-tabs {
+            display: inline-flex;
+            gap: 3px;
+            padding: 5px 5px 0;
+            background: var(--surface-soft);
+            border-bottom: 1px solid var(--border-soft);
+            flex: none;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .admin-tabs::-webkit-scrollbar { display: none; }
+        .admin-tab {
+            flex: 0 0 auto;
+            min-width: auto;
+            padding: 5px 10px;
+            border: 1px solid var(--border-soft);
+            border-radius: 8px 8px 0 0;
+            background: var(--surface);
+            color: var(--text-soft);
+            font-size: 9px;
+            font-weight: 800;
+            text-align: center;
+            cursor: pointer;
+            white-space: normal;
+            line-height: 1.2;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .admin-tab:hover { background: var(--light-gray); color: var(--primary); }
+        .admin-tab.active {
+            background: var(--surface);
+            color: var(--primary);
+            border-color: var(--primary);
+            position: relative;
+            z-index: 1;
+        }
+        .admin-tab-content {
+            display: none;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+            padding: 12px 12px 24px 12px;
+        }
+        .admin-tab-content.active { display: flex; flex-direction: column; }
+        .admin-tab-content .admin-card { margin-bottom: 10px; }
+        .admin-tab-content .admin-card:last-child { margin-bottom: 0; }
+        .admin-tab-content .admin-add-button { margin-bottom: 10px; }
+        .admin-tab-content .admin-add-button:last-child { margin-bottom: 0; }
+        #admin-tab-usuarios { padding: 0; }
+        #admin-tab-usuarios .admin-search-row {
+            flex: none;
+            padding: 8px;
+            margin: 0;
+        }
+        #admin-tab-usuarios .admin-user-list {
+            flex: 1 1 auto;
+            height: auto;
+            max-height: none;
+            overflow-y: auto;
+            border: none;
+            border-radius: 0;
+        }
+        .admin-rol-mes-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            margin-bottom: 10px;
+        }
+        .admin-rol-mes-row > div { flex: 1; }
 
         /* Botón flotante de desbloqueo en móvil */
         @media (max-width: 900px) and (orientation: portrait) {
@@ -1202,9 +1279,12 @@
             #btn-lock-shift-mobile { display: inline-flex; }
             .btn-shift .btn-lbl, .btn-agregar .btn-lbl, .btn-listado .btn-lbl { font-size: 10px !important; }
             .btn-shift, .btn-agregar, .btn-listado { max-width: none !important; }
-            .admin-modal-content { width: 98% !important; height: 94vh; max-height: 94vh; min-height: 0; margin: 3vh auto; }
+            .admin-modal-content { width: 98% !important; height: 90vh; max-height: 90vh; min-height: 0; margin: 3vh auto; }
             .admin-modal-layout { grid-template-columns: minmax(0, 1fr); }
             .admin-user-list { flex: 0 0 auto; height: 300px; max-height: 42vh; }
+            #admin-tab-usuarios .admin-user-list { height: auto; max-height: none; }
+            .admin-tabs { padding: 5px 5px 0; gap: 2px; }
+            .admin-tab { flex: 0 0 auto; min-width: auto; padding: 5px 10px; font-size: 9px; }
             
             .control-group { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; }
             .control-group span { width: auto !important; white-space: nowrap; text-align: left; margin-bottom: 0px; }
@@ -1243,7 +1323,7 @@
             .action-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); width: 100%; gap: 6px; }
             .action-bar .action-btn { width: 100%; box-sizing: border-box; }
             
-            .modal-content { width: 92%; padding: 16px; }
+            .modal-content { width: 92%; padding: 16px 16px 60px 16px; }
             .modal-row { flex-direction: row; gap: 10px; } 
         }
 
@@ -1593,39 +1673,6 @@
         }
         #manage-techs-modal .tech-grid {
             max-height: 420px;
-        }
-        #rol-import-modal .modal-content {
-            max-width: 900px;
-            width: 92%;
-            max-height: 90vh;
-            padding: 16px;
-        }
-        #rol-import-modal .modal-header {
-            margin-bottom: 10px;
-            padding-bottom: 6px;
-            font-size: 1em;
-        }
-        #rol-import-modal .modal-content input[type="text"],
-        #rol-import-modal .modal-content select {
-            margin-bottom: 8px;
-        }
-        #rol-import-modal .rol-tech-table-wrap {
-            max-height: 42vh;
-            overflow-y: auto;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-        }
-        #rol-import-modal .rol-tech-table-wrap table {
-            font-size: 9px;
-        }
-        #rol-import-modal .rol-tech-table-wrap th,
-        #rol-import-modal .rol-tech-table-wrap td {
-            padding: 3px 5px;
-        }
-        #rol-import-modal .rol-groups-wrap {
-            max-height: 22vh;
-            overflow-y: auto;
-            padding-right: 4px;
         }
         #wp-import-modal .modal-header,
         #wp-asignar-modal .modal-header { flex: none; }
@@ -2071,7 +2118,9 @@
             
             <div class="control-group leader-field" id="leader-field-techs">
                 <span class="control-label">Técnicos</span>
-                <input type="text" id="in-new-tech" placeholder="ESCRIBE PARA BUSCAR..." list="global-techs-list" onkeypress="if(event.key === 'Enter') addTech()" onchange="addTech()">
+                <input type="text" id="in-new-tech" placeholder="ESCRIBE PARA BUSCAR..." list="add-tech-datalist" onfocus="ensureAddTechDatalist()" onkeypress="if(event.key === 'Enter') addTech()" onchange="addTech()">
+                <datalist id="add-tech-datalist"></datalist>
+                <span id="add-tech-loading" style="font-size:10px; color:var(--comment); display:none; margin-left:4px;">CARGANDO TÉCNICOS DEL SHEET...</span>
                 <button class="btn-leader btn-agregar" onclick="addTech()" style="padding: 0 10px; display:inline-flex; align-items:center; gap:2px;"><span class="btn-ico">+</span><span class="btn-lbl">AGREGAR <span style="white-space:nowrap">AL TURNO</span></span></button>
                 <button class="btn-outline btn-listado" onclick="openManageTechsModal()" style="padding: 0 10px; font-size: 9px; display:inline-flex; align-items:center; gap:2px;" title="Editar Base Global de Técnicos"><span class="btn-ico">👥</span><span class="btn-lbl">LISTADO DE TÉCNICOS</span></button>
                 <button class="btn-outline btn-listado" id="btn-sync-rol" onclick="syncShiftWithRol()" style="padding: 0 10px; font-size: 9px; display:none; align-items:center; gap:2px;" title="Sincronizar técnicos con el rol mensual"><span class="btn-ico">🔄</span><span class="btn-lbl">ROL</span></button>
@@ -2540,70 +2589,113 @@
 <div id="admin-modal" class="modal">
     <div class="modal-content admin-modal-content">
         <div class="modal-header admin-modal-header">⚙ PANEL ADMIN</div>
-        <div class="admin-team-bar">
-            <!-- El desplegable y sus botones van juntos: si no, el texto de la barra
-                 los empuja a una segunda línea y dejan de verse "al costado". -->
-            <div class="admin-team-bar-main">
-                <label for="admin-team-select">EQUIPO:</label>
-                <select id="admin-team-select" class="admin-team-select" onchange="adminCambiaEquipoPanel(this.value)"></select>
-                <span class="admin-team-nombre" id="admin-team-nombre"></span>
-                <div class="admin-team-bar-acciones">
-                    <button class="team-btn" id="admin-team-rename" onclick="adminRenombrarEquipoSeleccion()" title="CAMBIAR EL NOMBRE DEL EQUIPO">✎</button>
-                    <button class="team-btn warn" id="admin-team-activo" onclick="adminAlternarEquipoSeleccion()" title="ACTIVAR / DESACTIVAR EL EQUIPO">ACTIVO</button>
-                    <button class="team-btn" id="admin-team-borrar" onclick="adminEliminarEquipoSeleccion()" title="ELIMINAR EL EQUIPO DEFINITIVAMENTE" style="display:none;">ELIMINAR</button>
-                    <button class="team-btn on" id="admin-new-team-btn" onclick="abrirNuevoEquipo()" title="CREAR UN EQUIPO NUEVO" style="display:none;">+ AGREGAR EQUIPO</button>
-                </div>
-            </div>
-            <span class="team-note" id="admin-team-nota"></span>
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="admin-tab-usuarios" onclick="adminShowTab('admin-tab-usuarios')">USUARIOS</button>
+            <button class="admin-tab" data-tab="admin-tab-agregar" onclick="adminShowTab('admin-tab-agregar')">AGREGAR USUARIO</button>
+            <button class="admin-tab" data-tab="admin-tab-equipos" onclick="adminShowTab('admin-tab-equipos')">EDITAR EQUIPOS</button>
+            <button class="admin-tab" data-tab="admin-tab-rol" id="admin-tab-rol-btn" onclick="adminShowTab('admin-tab-rol')">ROL</button>
+            <button class="admin-tab" data-tab="admin-tab-manto" id="admin-tab-manto-btn" onclick="adminShowTab('admin-tab-manto')" style="display:none;">MANTENIMIENTO</button>
         </div>
-        <div class="admin-modal-layout">
-            <div class="admin-side">
-                <div class="admin-card">
-                    <div class="admin-card-title">AGREGAR / EDITAR USUARIO</div>
-                    <input type="text" id="admin-realname" class="admin-field" list="admin-sugerencias-nombre" placeholder="NOMBRE · EJ: JUAN PEREZ" autocomplete="off" oninput="adminSugerir('nombre')" onchange="adminCompletar('nombre')" onkeypress="if(event.key === 'Enter') adminAddUser()">
-                    <input type="text" id="admin-name" class="admin-field" list="admin-sugerencias" placeholder="EMAIL · EJ: juan.perez@latam.cl" autocomplete="off" oninput="adminSugerir('email')" onchange="adminCompletar('email')" onkeypress="if(event.key === 'Enter') adminAddUser()">
-                    <datalist id="admin-sugerencias"></datalist>
-                    <datalist id="admin-sugerencias-nombre"></datalist>
-                    <div class="team-note" id="admin-sugerencia-nota"></div>
 
-                    <div class="admin-card-title">ROL FUNCIONAL</div>
-                    <div class="admin-role-grid">
-                        <label class="admin-role-option"><input type="radio" name="admin-rol" id="admin-is-usuario" value="usuario" checked onchange="adminCambiaTipoRol()"> USUARIO</label>
-                        <label class="admin-role-option"><input type="radio" name="admin-rol" id="admin-is-tech" value="tech" onchange="adminCambiaTipoRol()"> TÉCNICO</label>
-                        <label class="admin-role-option"><input type="radio" name="admin-rol" id="admin-is-tl" value="tl" onchange="adminCambiaTipoRol()"> TL</label>
-                        <label class="admin-role-option" title="Programa en todos los equipos: crea y edita la programación, carga técnicos y los asigna. NO completa tareas ni cierra turnos."><input type="radio" name="admin-rol" id="admin-is-planner" value="planner" onchange="adminCambiaTipoRol()"> PLANNER</label>
-                        <label class="admin-role-option" title="Control total en todos los equipos. Solo puede otorgarlo un super admin o admin global."><input type="radio" name="admin-rol" id="admin-is-super" value="super" onchange="adminCambiaTipoRol()"> SUPER</label>
-                    </div>
-                    <div class="team-note">SUPER / PLANNER tienen alcance global (todos los equipos). TL / TÉCNICO / USUARIO requieren seleccionar equipos.</div>
+        <div id="admin-tab-usuarios" class="admin-tab-content active">
+            <div class="admin-search-row">
+                <input type="text" id="admin-search" class="admin-search" placeholder="🔍 BUSCAR USUARIO O NOMBRE..." autocomplete="off" oninput="refreshAdminList()">
+                <button class="team-btn" id="admin-filtro-equipo" onclick="adminAlternarFiltroEquipo()" title="MOSTRAR SOLO LOS USUARIOS DE ESTE EQUIPO" style="display:none;">SOLO ESTE EQUIPO</button>
+            </div>
+            <div id="admin-list" class="admin-user-list"></div>
+        </div>
 
-                    <label class="admin-role-option" style="margin-top:8px" id="admin-opt-admin" title="Puede administrar usuarios y equipos. Con SUPER/PLANNER es admin global; con otros roles es admin solo de los equipos seleccionados.">
-                        <input type="checkbox" id="admin-is-admin" onchange="adminCambiaTipoRol()"> ADMIN
-                    </label>
+        <div id="admin-tab-agregar" class="admin-tab-content">
+            <div class="admin-card">
+                <div class="admin-card-title">AGREGAR / EDITAR USUARIO</div>
+                <input type="text" id="admin-realname" class="admin-field" list="admin-sugerencias-nombre" placeholder="NOMBRE · EJ: JUAN PEREZ" autocomplete="off" oninput="adminSugerir('nombre')" onchange="adminCompletar('nombre')" onkeypress="if(event.key === 'Enter') adminAddUser()">
+                <input type="text" id="admin-name" class="admin-field" list="admin-sugerencias" placeholder="EMAIL · EJ: juan.perez@latam.cl" autocomplete="off" oninput="adminSugerir('email')" onchange="adminCompletar('email')" onkeypress="if(event.key === 'Enter') adminAddUser()">
+                <datalist id="admin-sugerencias"></datalist>
+                <datalist id="admin-sugerencias-nombre"></datalist>
+                <div class="team-note" id="admin-sugerencia-nota"></div>
 
-                    <div class="admin-card-title" style="margin-top:12px">EQUIPOS</div>
-                    <div id="admin-equipos-global" class="admin-equipos-global" style="display:none;">
-                        <span class="admin-equipos-todos">📚 TODOS</span>
-                    </div>
-                    <div id="admin-equipos-selector">
-                        <div class="admin-team-grid" id="admin-equipos-grid"></div>
-                        <div class="team-note">Selecciona uno o más equipos. El usuario tendrá el rol elegido en cada uno.</div>
-                    </div>
+                <div class="admin-card-title" style="margin-top:10px;">ROL FUNCIONAL</div>
+                <div class="admin-role-grid">
+                    <label class="admin-role-option"><input type="radio" name="admin-rol" id="admin-is-usuario" value="usuario" checked onchange="adminCambiaTipoRol()"> USUARIO</label>
+                    <label class="admin-role-option"><input type="radio" name="admin-rol" id="admin-is-tech" value="tech" onchange="adminCambiaTipoRol()"> TÉCNICO</label>
+                    <label class="admin-role-option"><input type="radio" name="admin-rol" id="admin-is-tl" value="tl" onchange="adminCambiaTipoRol()"> TL</label>
+                    <label class="admin-role-option" title="Programa en todos los equipos: crea y edita la programación, carga técnicos y los asigna. NO completa tareas ni cierra turnos."><input type="radio" name="admin-rol" id="admin-is-planner" value="planner" onchange="adminCambiaTipoRol()"> PLANNER</label>
+                    <label class="admin-role-option" title="Control total en todos los equipos. Solo puede otorgarlo un super admin o admin global."><input type="radio" name="admin-rol" id="admin-is-super" value="super" onchange="adminCambiaTipoRol()"> SUPER</label>
                 </div>
-                <button class="btn-leader admin-add-button" onclick="adminAddUser()">GUARDAR USUARIO</button>
-                <div class="admin-card admin-manto-card" id="admin-mantenimiento-card" style="display:none;">
-                    <div class="admin-card-title">MODO MANTENIMIENTO <span style="font-weight:400;opacity:.7">· SOLO SUPER ADMIN</span></div>
-                    <div class="team-note admin-manto-note" id="admin-mantenimiento-nota">DESACTIVADO. TODO EL PERSONAL ACCEDE CON NORMALIDAD.</div>
-                    <button type="button" class="admin-rol-btn admin-manto-btn" id="admin-mantenimiento-btn" onclick="adminAlternarMantenimiento()">🔧 ACTIVAR MANTENIMIENTO</button>
+                <div class="team-note">SUPER / PLANNER tienen alcance global (todos los equipos). TL / TÉCNICO / USUARIO requieren seleccionar equipos.</div>
+
+                <label class="admin-role-option" style="margin-top:8px" id="admin-opt-admin" title="Puede administrar usuarios y equipos. Con SUPER/PLANNER es admin global; con otros roles es admin solo de los equipos seleccionados.">
+                    <input type="checkbox" id="admin-is-admin" onchange="adminCambiaTipoRol()"> ADMIN
+                </label>
+
+                <div class="admin-card-title" style="margin-top:12px">EQUIPOS</div>
+                <div id="admin-equipos-global" class="admin-equipos-global" style="display:none;">
+                    <span class="admin-equipos-todos">📚 TODOS</span>
+                </div>
+                <div id="admin-equipos-selector">
+                    <div class="admin-team-grid" id="admin-equipos-grid"></div>
+                    <div class="team-note">Selecciona uno o más equipos. El usuario tendrá el rol elegido en cada uno.</div>
                 </div>
             </div>
-            <div class="admin-list-panel">
-                <div class="admin-search-row">
-                    <input type="text" id="admin-search" class="admin-search" placeholder="🔍 BUSCAR USUARIO O NOMBRE..." autocomplete="off" oninput="refreshAdminList()">
-                    <button class="team-btn" id="admin-filtro-equipo" onclick="adminAlternarFiltroEquipo()" title="MOSTRAR SOLO LOS USUARIOS DE ESTE EQUIPO" style="display:none;">SOLO ESTE EQUIPO</button>
+            <button class="btn-leader admin-add-button" onclick="adminAddUser()">GUARDAR USUARIO</button>
+        </div>
+
+        <div id="admin-tab-equipos" class="admin-tab-content">
+            <div class="admin-team-bar" style="border-bottom:none; padding:0; background:transparent;">
+                <div class="admin-team-bar-main">
+                    <label for="admin-team-select">EQUIPO:</label>
+                    <select id="admin-team-select" class="admin-team-select" onchange="adminCambiaEquipoPanel(this.value)"></select>
+                    <span class="admin-team-nombre" id="admin-team-nombre"></span>
+                    <div class="admin-team-bar-acciones">
+                        <button class="team-btn" id="admin-team-rename" onclick="adminRenombrarEquipoSeleccion()" title="CAMBIAR EL NOMBRE DEL EQUIPO">✎</button>
+                        <button class="team-btn warn" id="admin-team-activo" onclick="adminAlternarEquipoSeleccion()" title="ACTIVAR / DESACTIVAR EL EQUIPO">ACTIVO</button>
+                        <button class="team-btn" id="admin-team-borrar" onclick="adminEliminarEquipoSeleccion()" title="ELIMINAR EL EQUIPO DEFINITIVAMENTE" style="display:none;">ELIMINAR</button>
+                        <button class="team-btn on" id="admin-new-team-btn" onclick="abrirNuevoEquipo()" title="CREAR UN EQUIPO NUEVO" style="display:none;">+ AGREGAR EQUIPO</button>
+                    </div>
                 </div>
-                <div id="admin-list" class="admin-user-list"></div>
+                <span class="team-note" id="admin-team-nota"></span>
             </div>
         </div>
+
+        <div id="admin-tab-rol" class="admin-tab-content">
+            <div class="admin-card" id="admin-rol-vivo-card" style="display:none;">
+                <div class="admin-card-title">ROL EN VIVO <span style="font-weight:400;opacity:.7">· ADMIN</span></div>
+                <div class="team-note">Selecciona el mes, configura la URL del Google Apps Script y los grupos del equipo.</div>
+                <div class="admin-rol-mes-row">
+                    <div>
+                        <label style="font-size:10px; font-weight:700; color:var(--comment);">MES</label>
+                        <select id="admin-rol-mes-select" class="admin-field" onchange="adminCambiarMesRol()" style="margin-top:2px;"></select>
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size:10px; font-weight:700; color:var(--comment);">URL DEL APPS SCRIPT</label>
+                    <input type="text" id="admin-rol-url" class="admin-field" placeholder="https://script.google.com/macros/s/.../exec" style="margin-top:2px;">
+                </div>
+                <div style="margin-top:10px;">
+                    <label style="font-size:10px; font-weight:700; color:var(--comment);">EQUIPO</label>
+                    <select id="admin-rol-equipo-select" class="admin-field" onchange="adminCambiarEquipoRolPanel(this.value)" style="margin-top:2px;"></select>
+                </div>
+                <div class="team-note" style="margin-top:10px;">Grupos asignados al equipo seleccionado (selecciona del Sheet).</div>
+                <div style="display:flex; gap:6px; align-items:stretch; margin-top:4px;">
+                    <select id="admin-grupos-equipo" multiple class="admin-field" style="min-height:80px; flex:1;"></select>
+                    <div style="display:flex; flex-direction:column; gap:6px; flex:0 0 auto;">
+                        <button type="button" class="btn-outline" onclick="diagnosticarSheetMesActual()" title="Diagnóstico del Sheet" style="font-size:10px; padding:6px 8px; white-space:nowrap; flex:1;">🔍 DIAGNÓSTICO</button>
+                        <button type="button" class="btn-outline" onclick="cargarGruposDesdeSheet()" title="Recargar grupos desde el Sheet" style="font-size:10px; padding:6px 8px; white-space:nowrap; flex:1;">🔄 RECARGAR</button>
+                    </div>
+                </div>
+                <div id="admin-grupos-sheet-msg" class="team-note" style="margin-top:4px;"></div>
+                <button class="btn-leader admin-add-button" onclick="guardarConfigRolVivo()" style="margin-top:10px;">GUARDAR CONFIGURACIÓN</button>
+            </div>
+        </div>
+
+        <div id="admin-tab-manto" class="admin-tab-content">
+            <div class="admin-card admin-manto-card" id="admin-mantenimiento-card" style="display:none;">
+                <div class="admin-card-title">MODO MANTENIMIENTO <span style="font-weight:400;opacity:.7">· SOLO SUPER ADMIN</span></div>
+                <div class="team-note admin-manto-note" id="admin-mantenimiento-nota">DESACTIVADO. TODO EL PERSONAL ACCEDE CON NORMALIDAD.</div>
+                <button type="button" class="admin-rol-btn admin-manto-btn" id="admin-mantenimiento-btn" onclick="adminAlternarMantenimiento()">🔧 ACTIVAR MANTENIMIENTO</button>
+            </div>
+        </div>
+
         <div class="modal-footer admin-modal-footer">
             <button class="btn-outline" onclick="cerrarAdminModal()">CERRAR</button>
         </div>
@@ -2693,9 +2785,9 @@
 
 <div id="manage-techs-modal" class="modal">
     <div class="modal-content">
-        <div class="modal-header">👥 BASE GLOBAL DE TÉCNICOS</div>
+        <div class="modal-header">📚 LIBRERÍA DE TÉCNICOS</div>
         <div style="font-size:10px; color:var(--comment); margin-bottom:12px;">
-            Agrega o elimina nombres del listado de tecnicos.
+            Técnicos del grupo seleccionado para este equipo. Puedes editar el nombre que viene del Sheet o agregar técnicos manuales.
         </div>
         <div style="display:flex; gap:10px; margin-bottom:15px;">
             <select id="global-techs-group-filter" style="flex:1; font-size:10px; margin:0;">
@@ -2715,7 +2807,6 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button class="btn-outline btn-modal-action" onclick="openRolImportModal()">📥 CARGAR ROL MENSUAL</button>
             <button class="btn-outline btn-modal-action" onclick="closeModal('manage-techs-modal')">CERRAR</button>
         </div>
     </div>
@@ -2740,34 +2831,6 @@
         <div class="modal-footer">
             <button class="btn-outline btn-modal-action" onclick="closeModal('add-global-tech-modal')">CANCELAR</button>
             <button class="btn-leader btn-modal-action" onclick="saveManualGlobalTech()">GUARDAR</button>
-        </div>
-    </div>
-</div>
-
-<div id="rol-import-modal" class="modal">
-    <div class="modal-content" style="max-width: 900px; max-height: 90vh; display: flex; flex-direction: column;">
-        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
-            <span>📥 CARGAR ROL MENSUAL</span>
-            <span style="cursor:pointer; font-size:18px; line-height:1; color:var(--text-soft);" onclick="closeModal('rol-import-modal')" title="Cerrar">×</span>
-        </div>
-        <div id="rol-import-body" style="overflow-y: auto; padding-right: 4px;">
-            <div id="rol-import-step1" style="margin-bottom: 12px;">
-                <div style="font-size: 10px; color: var(--comment); margin-bottom: 8px;">
-                    Sube el archivo CSV o Excel del rol. El sistema detectará el mes, los grupos y los turnos automáticamente.
-                </div>
-                <input type="file" id="rol-import-file" accept=".csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" onchange="handleRolFileSelect(event)" style="font-size: 11px;">
-                <div id="rol-import-last-update" style="font-size: 10px; color: var(--comment); margin-top: 8px;"></div>
-            </div>
-            <div id="rol-import-step2" style="display: none;">
-                <div id="rol-import-info" style="font-size: 11px; color: var(--primary); font-weight: 700; margin-bottom: 12px;"></div>
-                <div id="rol-import-groups" style="margin-bottom: 12px;"></div>
-                <div style="font-size: 10px; color: var(--comment); margin-bottom: 6px;">Nombres detectados (puedes editarlos):</div>
-                <div id="rol-import-techs" style="margin-bottom: 12px;"></div>
-            </div>
-        </div>
-        <div class="modal-footer" id="rol-import-footer" style="display: none;">
-            <button class="btn-outline btn-modal-action" onclick="closeModal('rol-import-modal')">CANCELAR</button>
-            <button class="btn-leader btn-modal-action" onclick="saveRolImport()">GUARDAR ROL</button>
         </div>
     </div>
 </div>
@@ -2823,6 +2886,11 @@
     let mantenimientoActivo = false;
     let mantenimientoDesde = 0;
     const TZ_SANTIAGO = 'America/Santiago';
+
+    // Configuración global para rol en vivo desde Google Sheet
+    const configRolUrlsRef = ref(db, 'mantenimiento/alisteo/config/rol_sheet_urls');
+    const configGruposRef = ref(db, 'mantenimiento/alisteo/config/grupos_por_equipo');
+    const libreriaTecnicosRef = ref(db, 'mantenimiento/alisteo/libreria_tecnicos');
 
     // La identidad es SIEMPRE el correo completo. Se aceptan también el alias sin
     // dominio para no dejar fuera cuentas antiguas ni listas ya cargadas en Firebase.
@@ -3119,7 +3187,7 @@
         d.aviones = d.aviones || []; d.techs = d.techs || []; d.header = d.header || {};
         // las variables de siempre pasan a apuntar a este equipo: la lista que se
         // ve junta NO cambia, porque en la vista de todos se dibuja desde turnoDatos
-        avionesData = d.aviones; shiftTechs = d.techs; shiftState = d.header;
+        avionesData = d.aviones; shiftTechs = normalizeTechs(d.techs); shiftState = d.header;
         // el título del grupo de actividades también es de cada turno
         actividadGrupoTitulo = d.header.actividadTitulo || '⭐ ACTIVIDADES EXTRA';
         render(); renderTechPills(); renderGroupMessages(); updateTechFilterDropdown();
@@ -3136,6 +3204,14 @@
         if (!vistaTodos || !lista.length) { row.style.display = 'none'; return; }
         row.style.display = 'flex';
         sel.innerHTML = lista.map(t => `<option value="${escapeAttr(t)}"${t === currentTeam ? ' selected' : ''}>${escapeHtml(equipoNombre(t))}</option>`).join('');
+        // Si el equipo actual no es gestionable en la vista de todos, adoptar el primero
+        // de la lista para que el panel de control muestre datos de inmediato.
+        if (lista.indexOf(currentTeam) === -1 && lista.length) {
+            currentTeam = lista[0];
+            ligarEquipo(currentTeam);
+            renderHeaderTodos();
+            updateRolSyncButton();
+        }
     }
     async function cambiarEquipoGestionado(team) {
         // traemos el header antes de ligar el equipo, para que el botón de
@@ -3151,7 +3227,6 @@
         ligarEquipo(team);
         renderHeaderTodos();
         updateRolSyncButton();
-        loadShiftRolCodes();
     }
     // ¿Está ese turno cerrado para mí? En la vista de todos se pregunta por el
     // equipo de la tarjeta, no por el que se está gestionando.
@@ -3530,6 +3605,12 @@
             }
             vistaTodos = true;
             try { localStorage.setItem(LS_TODOS, '1'); } catch (e) {}
+            // En vista de todos hay que editar un equipo gestionable: si el actual no lo es,
+            // adoptar el primero disponible para que el panel de control muestre datos.
+            const gestionables = equiposGestionables();
+            if (gestionables.length && gestionables.indexOf(currentTeam) === -1) {
+                currentTeam = gestionables[0];
+            }
             // en esta vista el panel se abre si puede programar en algun equipo
             if (puedePanelEnTodos()) activateLeaderUI();
             else if (panelAbierto) deactivateLeaderUI();
@@ -3747,6 +3828,24 @@
             return Promise.resolve();
         }
     }
+    // Índice de team leaders por equipo: usado por reglas para dar acceso a
+    // librería de técnicos y grupos por equipo sin recorrer roles/$team.
+    function sincronizarIndiceTls(user, team) {
+        try {
+            const key = claveNodoDe(user);
+            if (!key || !team) return Promise.resolve();
+            const esTl = puede(user, 'liderar', team);
+            const ruta = 'mantenimiento/alisteo/tls/' + key + '/' + sanitizeTeamId(team);
+            const p = esTl ? set(ref(db, ruta), true) : remove(ref(db, ruta));
+            if (p && typeof p.catch === 'function') {
+                p.catch(e => console.warn('indice de tls no se actualizo:', e && (e.code || e.message)));
+            }
+            return p || Promise.resolve();
+        } catch (e) {
+            console.warn('indice de tls:', e && e.message);
+            return Promise.resolve();
+        }
+    }
     // Reparación de índices del usuario conectado: si por alguna razón (migración,
     // sincronización fallida, edición manual en Firebase) falta alguno de los índices
     // globales que corresponden a sus roles, se vuelven a escribir. Esto evita que un
@@ -3764,7 +3863,10 @@
         ]).then(() => {
             const rec = usuariosDB[userKeyFor(u)];
             if (!rec || !rec.roles) return;
-            return Promise.all(Object.keys(rec.roles).map(t => sincronizarIndiceAdmins(u, t)));
+            return Promise.all(Object.keys(rec.roles).map(t => Promise.all([
+                sincronizarIndiceAdmins(u, t),
+                sincronizarIndiceTls(u, t)
+            ])));
         }).catch(e => console.warn('reparacion de indices propios:', e && e.message));
     }
 
@@ -3786,6 +3888,7 @@
                 aplicarRolesLocal(user, team, rolRecData);
                 return Promise.all([
                     sincronizarIndiceAdmins(user, team),
+                    sincronizarIndiceTls(user, team),
                     sincronizarIndiceGlobalAdmins(user),
                     sincronizarIndiceSupervisors(user),
                     sincronizarIndicePlanners(user)
@@ -3808,6 +3911,7 @@
                 if (previo) aplicarRolesLocal(user, team, previo);
                 Promise.all([
                     sincronizarIndiceAdmins(user, team),
+                    sincronizarIndiceTls(user, team),
                     sincronizarIndiceGlobalAdmins(user),
                     sincronizarIndiceSupervisors(user),
                     sincronizarIndicePlanners(user)
@@ -4147,6 +4251,17 @@
         seguroCompartidas(renderCompartidas);
         evaluateGate();
         }, (e) => console.warn('usuarios:', e.code)));
+
+        // Configuración global de rol en vivo (URLs del Sheet y grupos por equipo)
+        rolesUnsubs.push(onValue(configRolUrlsRef, (snapshot) => {
+            configRolUrls = snapshot.val() || {};
+            renderAdminRolMesSelect();
+            updateRolSyncButton();
+        }, (e) => console.warn('config rol_sheet_urls:', e.code)));
+        rolesUnsubs.push(onValue(configGruposRef, (snapshot) => {
+            configGruposPorEquipo = snapshot.val() || {};
+            renderGruposPorEquipoPanel();
+        }, (e) => console.warn('config grupos_por_equipo:', e.code)));
     }
     // P4 FIX: Esperar a que Firebase restaure la sesión de Google antes de suscribir roles (evita decidir con permisos viejos)
     auth.authStateReady().then(()=> subscribeRoles()).catch(()=> subscribeRoles());
@@ -4156,8 +4271,7 @@
     let unsubAviones = [], unsubTechs = [], unsubHeader = [];
 
     let avionesData = [];
-    let shiftTechs = [];
-    let currentRolCodes = null; // { nombreTecnico: codigoOriginal } para viewingDate
+    let shiftTechs = []; // ahora array de objetos { nombre, bp, codigo }
     let activeCodeFilter = ''; 
     let globalTechs = [];
     let globalTechDetails = {}; // nombre -> datos del rol mensual
@@ -4168,6 +4282,180 @@
     let groupMessages = [];
     let editCurrentMessageId = null; 
     
+    // ─── ROL EN VIVO DESDE GOOGLE SHEET ───────────────────────────────────
+    // Configuracion global: URLs del App Script por mes y grupos por equipo.
+    let configRolUrls = {};          // { "2026-10": "https://...", "2026-11": "..." }
+    let configGruposPorEquipo = {};  // { "cabina": ["GRUPO A", "GRUPO B"], ... }
+    let libreriaTecnicos = {};       // { "BP123": { nombre: "JUAN PEREZ" }, ... }
+    let equipoSheetTechs = [];       // tecnicos del Sheet filtrados por grupos del equipo actual
+    let equipoSheetTechsLoaded = false;
+    let rolSheetCache = null;        // ultimo JSON del mes leido (solo memoria, no Firebase)
+    let rolSheetCacheMonth = '';     // mes del cache
+
+    // Helpers para trabajar con shiftTechs como objetos {nombre, bp, codigo}
+    function techNombre(t) { return (t && t.nombre) || (typeof t === 'string' ? t : ''); }
+    function techBp(t) { return (t && t.bp) || null; }
+    function techCodigo(t) { return (t && t.codigo) || null; }
+    function normalizeTechs(arr) {
+      return (arr || []).map(t => {
+        if (t && typeof t === 'object' && t.nombre) return { nombre: t.nombre, bp: t.bp || null, codigo: t.codigo || null };
+        if (typeof t === 'string' && t.trim()) return { nombre: t.trim(), bp: null, codigo: null };
+        return null;
+      }).filter(Boolean);
+    }
+    function findTechIndexByName(name) {
+      const n = String(name || '').trim().toUpperCase();
+      return shiftTechs.findIndex(t => techNombre(t) === n);
+    }
+    function techsNames() { return shiftTechs.map(t => techNombre(t)); }
+    function findTechByName(name) {
+        const n = String(name || '').trim().toUpperCase();
+        return shiftTechs.find(t => techNombre(t) === n) || null;
+    }
+    function findBpByName(name) {
+        const n = String(name || '').trim().toUpperCase();
+        const inTurno = shiftTechs.find(t => techNombre(t) === n);
+        if (inTurno && techBp(inTurno)) return techBp(inTurno);
+        // buscar en técnicos del Sheet del equipo actual (resuelto con librería)
+        const fromSheet = equipoSheetTechs.find(t => resolveSheetTechName(t.bp, t.nombre) === n);
+        if (fromSheet && fromSheet.bp) return fromSheet.bp;
+        return null;
+    }
+    function getRolSheetUrlForMonth(monthKey) {
+        return configRolUrls[monthKey] || null;
+    }
+    async function fetchRolSheetForDate(date, turno) {
+        const monthKey = date.slice(0, 7);
+        const url = getRolSheetUrlForMonth(monthKey);
+        if (!url) throw new Error('NO HAY URL CONFIGURADA PARA EL MES ' + monthKey);
+        const sep = url.includes('?') ? '&' : '?';
+        const fullUrl = url + sep + 'fecha=' + encodeURIComponent(date) + '&turno=' + encodeURIComponent(turno);
+        const resp = await fetch(fullUrl);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status + ' DESDE GOOGLE SHEET');
+        const data = await resp.json();
+        if (data && data.error) throw new Error(data.error);
+        return Array.isArray(data) ? data : [];
+    }
+    async function fetchRolSheetAllTechs(monthKey) {
+        const url = getRolSheetUrlForMonth(monthKey);
+        if (!url) throw new Error('NO HAY URL CONFIGURADA PARA EL MES ' + monthKey);
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status + ' DESDE GOOGLE SHEET');
+        const data = await resp.json();
+        if (data && data.error) throw new Error(data.error);
+        if (!Array.isArray(data)) throw new Error('LA RESPUESTA DEL SHEET NO ES UN ARRAY');
+        if (data.length > 0 && Array.isArray(data[0])) {
+            throw new Error('EL APPS SCRIPT ESTÁ DEVOLVIENDO FILAS CRUDAS EN LUGAR DE OBJETOS. REDEPLOY CON LA VERSIÓN ACTUAL DE rol-sheet.gs');
+        }
+        if (data.length > 0 && (data[0].nombre === undefined || data[0].grupo === undefined)) {
+            throw new Error('EL APPS SCRIPT NO DEVUELVE LOS CAMPOS nombre/grupo. REDEPLOY CON LA VERSIÓN ACTUAL DE rol-sheet.gs');
+        }
+        return data;
+    }
+    async function fetchTechDetailsFromSheet(bp) {
+        if (!bp) return null;
+        const monthKey = viewingDate.slice(0, 7);
+        const url = getRolSheetUrlForMonth(monthKey);
+        if (!url) return null;
+        const sep = url.includes('?') ? '&' : '?';
+        const fullUrl = url + sep + 'bp=' + encodeURIComponent(bp);
+        const resp = await fetch(fullUrl);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status + ' DESDE GOOGLE SHEET');
+        const data = await resp.json();
+        if (data && data.error) throw new Error(data.error);
+        return data;
+    }
+
+    // Cache de tecnicos del Sheet para el cuadro de agregar tecnicos rapido.
+    // Se renueva cada 10 minutos o al cambiar de mes, para no perder cambios del Sheet.
+    // Tambien se guarda en localStorage para sobrevivir recargas de pagina.
+    const ADD_TECH_CACHE_KEY = 'latam_add_tech_sheet_cache';
+    const ADD_TECH_CACHE_TTL_MS = 10 * 60 * 1000;
+    let addTechSheetCache = { monthKey: '', techs: [], ts: 0 };
+
+    function loadAddTechCacheFromStorage() {
+        try {
+            const raw = localStorage.getItem(ADD_TECH_CACHE_KEY);
+            if (!raw) return;
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed.ts === 'number' && Array.isArray(parsed.techs)) {
+                addTechSheetCache = { monthKey: parsed.monthKey || '', techs: parsed.techs, ts: parsed.ts };
+            }
+        } catch (e) {
+            console.warn('No se pudo leer cache de tecnicos del Sheet:', e);
+        }
+    }
+    function saveAddTechCacheToStorage() {
+        try {
+            localStorage.setItem(ADD_TECH_CACHE_KEY, JSON.stringify(addTechSheetCache));
+        } catch (e) {
+            console.warn('No se pudo guardar cache de tecnicos del Sheet:', e);
+        }
+    }
+    loadAddTechCacheFromStorage();
+
+    function setAddTechLoading(mostrar) {
+        const el = document.getElementById('add-tech-loading');
+        if (el) el.style.display = mostrar ? 'inline' : 'none';
+    }
+
+    async function ensureAddTechSheetCache(monthKey) {
+        const now = Date.now();
+        if (addTechSheetCache.monthKey === monthKey && (now - addTechSheetCache.ts) < ADD_TECH_CACHE_TTL_MS) {
+            return addTechSheetCache.techs;
+        }
+        setAddTechLoading(true);
+        try {
+            const data = await fetchRolSheetAllTechs(monthKey);
+            addTechSheetCache = { monthKey, techs: data || [], ts: now };
+            saveAddTechCacheToStorage();
+            return addTechSheetCache.techs;
+        } catch (e) {
+            console.warn('No se pudo cargar tecnicos del Sheet para autocompletado:', e);
+            addTechSheetCache = { monthKey, techs: [], ts: now };
+            saveAddTechCacheToStorage();
+            return [];
+        } finally {
+            setAddTechLoading(false);
+        }
+    }
+
+    function resolveSheetTechName(bp, fallback) {
+        return (bp && libreriaTecnicos[bp] && libreriaTecnicos[bp].nombre)
+            ? libreriaTecnicos[bp].nombre
+            : String(fallback || '').trim().toUpperCase();
+    }
+
+    function getAvailableTechs() {
+        const monthKey = viewingDate.slice(0, 7);
+        const map = new Map();
+        // Manuales primero
+        (globalTechs || []).forEach(nombre => {
+            const n = String(nombre || '').trim().toUpperCase();
+            if (n) map.set(n, { nombre: n, bp: null, codigo: null, fuente: 'manual' });
+        });
+        // Del Sheet (con cache actual o no)
+        const sheetTechs = (addTechSheetCache.monthKey === monthKey) ? addTechSheetCache.techs : [];
+        sheetTechs.forEach(t => {
+            const bp = String(t.bp || '').trim().toUpperCase();
+            const nombre = resolveSheetTechName(bp, t.nombre);
+            if (!nombre) return;
+            if (!map.has(nombre)) {
+                map.set(nombre, { nombre, bp: bp || null, codigo: t.codigo || null, fuente: 'sheet' });
+            }
+        });
+        return Array.from(map.values()).sort((a, b) => a.nombre.localeCompare(b.nombre));
+    }
+
+    async function ensureAddTechDatalist() {
+        const datalist = document.getElementById('add-tech-datalist');
+        if (!datalist) return;
+        const monthKey = viewingDate.slice(0, 7);
+        await ensureAddTechSheetCache(monthKey);
+        const techs = getAvailableTechs();
+        datalist.innerHTML = techs.map(t => `<option value="${escapeAttr(t.nombre)}">${escapeAttr(t.nombre)}${t.bp ? ' · BP ' + escapeAttr(t.bp) : ''}</option>`).join('');
+    }
+
     let isTeamLeader = false;      // tiene POD_LIDER: es TL de verdad
     let panelAbierto = false;      // ve el panel de trabajo (TL o planner)
     let cleanView = false;         // vista limpia: oculta botones y controles (solo lectura)
@@ -4514,6 +4802,7 @@
         unsubGlobalTechs = onValue(globalTechsRef(), (snapshot) => {
             globalTechs = snapshot.val() || [];
             updateGlobalTechsUI();
+            ensureAddTechDatalist();
         }, readErr);
         unsubGlobalTechTurnos = onValue(ref(db, datosPath() + '/global_tech_turnos'), (snapshot) => {
             globalTechTurnos = snapshot.val() || {};
@@ -4698,7 +4987,7 @@
             // La sesion puede venir restaurada (compartida con la otra app) sin pasar por el boton:
             // hay que asegurar el indice de uids o las reglas no dareian permisos.
             const g = googleUser();
-            if (g && !uidLinked) { uidLinked = true; linkUid(g, u).catch(() => {}); }
+            if (g && !uidLinked) { linkUid(g, u).then(() => { uidLinked = true; }).catch(() => {}); }
             limpiarPantallaMantenimiento();
             overlay.style.display = 'none';
             attachData();
@@ -4757,24 +5046,23 @@
     }
     async function linkUid(fu, email) {
         const correo = normalizeEmail(fu.email || email);
+        if (!correo || !correo.includes('@')) return;
         const key = userKeyFor(correo);
         const rec = usuariosDB[key];
-        // Las reglas SOLO dejan escribir el indice si ese correo ya esta dado de alta por
-        // un admin (o sea, si el registro tiene ese email). Si no esta, no hay nada que
-        // enlazar: sin registro no hay roles, y por lo tanto tampoco hay acceso. Se avisa
-        // en vez de intentar una escritura que Firebase va a rechazar.
-        if (!rec) {
-            if (!isSuperAdmin(correo)) {
-                toastThrottled('⚠️ AÚN NO ESTÁS DADO DE ALTA: PIDE QUE UN ADMIN TE AGREGUE AL EQUIPO');
-            }
+        const esSuper = isSuperAdmin(correo);
+        // Escribir el indice para cualquier usuario con acceso (registrado o super admin).
+        // Las reglas permiten a cada usuario escribir su propio uid, asi que esto no falla.
+        if (!rec && !esSuper) {
+            toastThrottled('⚠️ AÚN NO ESTÁS DADO DE ALTA: PIDE QUE UN ADMIN TE AGREGUE AL EQUIPO');
             return;
         }
-        if (rec.email && normalizeEmail(rec.email) !== correo) {
+        if (rec && rec.email && normalizeEmail(rec.email) !== correo) {
             toastThrottled('⚠️ TU CORREO NO ES EL REGISTRADO (' + String(rec.email).toUpperCase() + '): AVÍSALE A UN ADMIN');
             return;
         }
-        // el indice de las reglas debe apuntar siempre a la clave real del registro
-        await dbSet(ref(db, 'mantenimiento/uids/' + fu.uid), claveNodoDe(key), 'REGISTRAR UID');
+        // Para super admin que no esta en usuariosDB, usar el email sanitizado.
+        const clave = rec ? claveNodoDe(key) : sanitizeKey(correo);
+        await dbSet(ref(db, 'mantenimiento/uids/' + fu.uid), clave, 'REGISTRAR UID');
         // El correo ya lo escribe el admin al crear el usuario; solo un admin puede
         // tocarlo, asi que aqui no se intenta (el indice de arriba ya quedo listo).
     }
@@ -4811,7 +5099,217 @@
     function updateAdminUI() {
         const btn = document.getElementById('btn-admin');
         if (btn) btn.style.display = isAdminUser() ? 'inline-flex' : 'none';
+        const mantoTab = document.getElementById('admin-tab-manto-btn');
+        if (mantoTab) mantoTab.style.display = isSuperAdmin(sessionUser()) ? '' : 'none';
         updateMantenimientoUI();
+        updateRolVivoAdminCard();
+    }
+
+    let adminGruposSelectInited = false;
+    function adminShowTab(tabId) {
+        document.querySelectorAll('.admin-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
+        document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.toggle('active', c.id === tabId));
+        if (tabId === 'admin-tab-rol') {
+            renderAdminRolMesSelect();
+            renderAdminRolEquipoSelect();
+            renderGruposPorEquipoPanel();
+                if (!adminGruposSelectInited) {
+                adminGruposSelectInited = true;
+                const sel = document.getElementById('admin-grupos-equipo');
+                if (sel) {
+                    sel.addEventListener('mousedown', function(e) {
+                        if (e.target.tagName === 'OPTION') {
+                            e.preventDefault();
+                            e.target.selected = !e.target.selected;
+                            this.focus();
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    function adminCambiarEquipoRolPanel(team) {
+        if (!team) return;
+        adminEquipoSel = team;
+        const selPrincipal = document.getElementById('admin-team-select');
+        if (selPrincipal) selPrincipal.value = team;
+        renderAdminTeamBar();
+        renderGruposPorEquipoPanel();
+    }
+
+    function renderAdminRolEquipoSelect() {
+        const sel = document.getElementById('admin-rol-equipo-select');
+        if (!sel) return;
+        const lista = equiposDelPanel();
+        if (!adminEquipoSel || lista.indexOf(adminEquipoSel) === -1) {
+            adminEquipoSel = lista.indexOf(currentTeam) !== -1 ? currentTeam : (lista[0] || null);
+        }
+        sel.innerHTML = lista.map(t =>
+            `<option value="${escapeAttr(t)}"${t === adminEquipoSel ? ' selected' : ''}>${escapeHtml(equipoNombre(t))}${equipoActivo(t) ? '' : ' (DESACTIVADO)'}</option>`
+        ).join('') || '<option value="">SIN EQUIPOS</option>';
+    }
+
+    function puedeConfigurarRolVivo() {
+        const u = sessionUser();
+        return isSuperAdmin(u) || adminGlobalDe(u) || administraAlgunEquipo(u);
+    }
+
+    function updateRolVivoAdminCard() {
+        const tabBtn = document.getElementById('admin-tab-rol-btn');
+        const card = document.getElementById('admin-rol-vivo-card');
+        if (!tabBtn || !card) return;
+        const visible = puedeConfigurarRolVivo();
+        tabBtn.style.display = visible ? '' : 'none';
+        card.style.display = visible ? 'block' : 'none';
+        if (visible) {
+            renderAdminRolMesSelect();
+            renderAdminRolEquipoSelect();
+            renderGruposPorEquipoPanel();
+        }
+    }
+
+    function getCurrentMonthKey() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    }
+    function getNextMonthKey() {
+        const d = new Date();
+        d.setMonth(d.getMonth() + 1);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    }
+
+    function renderAdminRolMesSelect() {
+        const sel = document.getElementById('admin-rol-mes-select');
+        if (!sel) return;
+        const current = getCurrentMonthKey();
+        const next = getNextMonthKey();
+        const opts = [];
+        const base = new Date();
+        for (let i = -2; i <= 6; i++) {
+            const d = new Date(base.getFullYear(), base.getMonth() + i, 1);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            opts.push(key);
+        }
+        const unique = Array.from(new Set(opts)).sort();
+        const prevValue = sel.value || current;
+        sel.innerHTML = unique.map(k => {
+            const label = k === current ? `${k} (ACTUAL)` : k === next ? `${k} (SIGUIENTE)` : k;
+            return `<option value="${escapeAttr(k)}">${escapeHtml(label)}</option>`;
+        }).join('');
+        sel.value = unique.includes(prevValue) ? prevValue : current;
+        adminCambiarMesRol();
+    }
+
+    function adminCambiarMesRol() {
+        const sel = document.getElementById('admin-rol-mes-select');
+        const input = document.getElementById('admin-rol-url');
+        if (!sel || !input) return;
+        const monthKey = sel.value;
+        input.value = configRolUrls[monthKey] || '';
+    }
+
+    function getAdminSelectedMonthKey() {
+        const sel = document.getElementById('admin-rol-mes-select');
+        return sel ? sel.value : getCurrentMonthKey();
+    }
+
+    function renderGruposPorEquipoPanel() {
+        const sel = document.getElementById('admin-grupos-equipo');
+        if (!sel) return;
+        const team = adminEquipoSel || currentTeam;
+        const guardados = (configGruposPorEquipo[sanitizeTeamId(team)] || []).map(g => String(g).trim().toUpperCase());
+        Array.from(sel.options).forEach(opt => {
+            opt.selected = guardados.includes(opt.value);
+        });
+    }
+
+    async function cargarGruposDesdeSheet() {
+        const msg = document.getElementById('admin-grupos-sheet-msg');
+        const sel = document.getElementById('admin-grupos-equipo');
+        if (!sel || !msg) return;
+        const monthKey = getAdminSelectedMonthKey();
+        const url = getRolSheetUrlForMonth(monthKey);
+        if (!url) {
+            msg.textContent = 'CONFIGURA PRIMERO LA URL DEL MES ' + monthKey + '.';
+            msg.style.color = 'var(--danger)';
+            return;
+        }
+        msg.textContent = 'CARGANDO GRUPOS DESDE EL SHEET...';
+        msg.style.color = 'var(--comment)';
+        try {
+            const data = await fetchRolSheetAllTechs(monthKey);
+            const grupos = Array.from(new Set(data.map(t => String(t.grupo || '').trim().toUpperCase()).filter(Boolean))).sort();
+            if (!grupos.length) {
+                msg.textContent = 'NO SE DETECTARON GRUPOS EN EL SHEET. REVISA QUE LA HOJA TENGA LA COLUMNA "NOMBRE GRUPO".';
+                msg.style.color = 'var(--danger)';
+                return;
+            }
+            const seleccionados = Array.from(sel.selectedOptions).map(o => o.value);
+            sel.innerHTML = grupos.map(g => `<option value="${escapeAttr(g)}">${escapeHtml(g)}</option>`).join('');
+            Array.from(sel.options).forEach(opt => {
+                if (seleccionados.includes(opt.value)) opt.selected = true;
+            });
+            renderGruposPorEquipoPanel();
+            msg.textContent = `${grupos.length} GRUPOS CARGADOS. SELECCIONA LOS DEL EQUIPO Y GUARDA.`;
+            msg.style.color = 'var(--success)';
+        } catch (e) {
+            console.error('ERROR CARGANDO GRUPOS DEL SHEET:', e);
+            msg.textContent = 'ERROR: ' + (e.message || e);
+            msg.style.color = 'var(--danger)';
+        }
+    }
+
+    async function diagnosticarSheetMesActual() {
+        const monthKey = getAdminSelectedMonthKey();
+        const url = getRolSheetUrlForMonth(monthKey);
+        if (!url) {
+            showConfirm('NO HAY URL CONFIGURADA PARA EL MES ' + monthKey, null);
+            return;
+        }
+        const msg = document.getElementById('admin-grupos-sheet-msg');
+        if (msg) { msg.textContent = 'DIAGNOSTICANDO...'; msg.style.color = 'var(--comment)'; }
+        try {
+            const data = await fetchRolSheetAllTechs(monthKey);
+            const grupos = Array.from(new Set(data.map(t => String(t.grupo || '').trim().toUpperCase()).filter(Boolean))).sort();
+            const primeros = data.slice(0, 5).map(t => `  • ${String(t.nombre || 'SIN NOMBRE').toUpperCase()} | BP:${t.bp || '-'} | GRUPO:${t.grupo || '-'}`).join('\n');
+            const info = `MES: ${monthKey}\nTÉCNICOS ENCONTRADOS: ${data.length}\nGRUPOS DETECTADOS: ${grupos.length}\n${grupos.join(', ')}\n\nEJEMPLOS:\n${primeros}`;
+            showConfirm(info, null);
+            if (msg) { msg.textContent = `DIAGNÓSTICO: ${data.length} TÉCNICOS, ${grupos.length} GRUPOS.`; msg.style.color = 'var(--success)'; }
+        } catch (e) {
+            console.error('[diagnosticarSheetMesActual] error:', e);
+            showConfirm('ERROR AL LEER EL SHEET:\n' + (e.message || e), null);
+            if (msg) { msg.textContent = 'ERROR EN DIAGNÓSTICO.'; msg.style.color = 'var(--danger)'; }
+        }
+    }
+
+    async function guardarConfigRolVivo() {
+        if (!puedeConfigurarRolVivo()) return showToast('⚠️ NO TIENES PERMISO PARA CONFIGURAR EL ROL EN VIVO');
+        const mesSel = document.getElementById('admin-rol-mes-select');
+        const monthKey = mesSel ? mesSel.value : getCurrentMonthKey();
+        const urlInput = document.getElementById('admin-rol-url');
+        const url = (urlInput?.value || '').trim();
+        const team = adminEquipoSel || currentTeam;
+        const sel = document.getElementById('admin-grupos-equipo');
+        const gruposRaw = sel ? Array.from(sel.selectedOptions).map(o => o.value.trim().toUpperCase()).filter(Boolean) : [];
+
+        const tareas = [];
+        if (url) tareas.push(dbSet(ref(db, 'mantenimiento/alisteo/config/rol_sheet_urls/' + monthKey), url, 'GUARDAR URL ROL ' + monthKey));
+        else tareas.push(remove(ref(db, 'mantenimiento/alisteo/config/rol_sheet_urls/' + monthKey)).catch(() => {}));
+
+        if (gruposRaw.length) {
+            tareas.push(dbSet(ref(db, 'mantenimiento/alisteo/config/grupos_por_equipo/' + sanitizeTeamId(team)), gruposRaw, 'GUARDAR GRUPOS POR EQUIPO'));
+        } else {
+            tareas.push(remove(ref(db, 'mantenimiento/alisteo/config/grupos_por_equipo/' + sanitizeTeamId(team))).catch(() => {}));
+        }
+
+        try {
+            await Promise.all(tareas);
+            showToast('✅ CONFIGURACIÓN GUARDADA');
+        } catch (e) {
+            console.error('ERROR GUARDANDO CONFIG ROL VIVO:', e);
+            showConfirm('ERROR AL GUARDAR LA CONFIGURACIÓN.\n' + (e.message || e), null);
+        }
     }
 
     // ─── MODO MANTENIMIENTO (solo super admin) ───────────────────────────
@@ -4914,11 +5412,13 @@
         if (yes) yes.innerText = activar ? 'SÍ, ACTIVAR' : 'SÍ, DESACTIVAR';
     }
 
-    function showToast(msg) {
+    function showToast(msg, durationMs = 3000) {
         const toast = document.getElementById('toast');
         toast.innerText = msg;
         toast.className = 'show';
-        setTimeout(() => { toast.className = toast.className.replace('show', ''); }, 3000);
+        if (durationMs > 0) {
+            setTimeout(() => { toast.className = toast.className.replace('show', ''); }, durationMs);
+        }
     }
 
     let _lastToastAt = 0;
@@ -4995,6 +5495,7 @@
         renderAdminTeamBar();
         renderNewTeamsGrid();
         refreshAdminList();
+        renderGruposPorEquipoPanel();
     }
     function openAdminModal() {
         if (!isAdminUser()) return;
@@ -5016,7 +5517,7 @@
         });
         adminBloquearNombre(false);
         nombreAutocompletado = null;
-        adminEquipoSel = currentTeam;
+        adminEquipoSel = (vistaTodos ? equipoEnEdicion() : currentTeam) || currentTeam;
         adminSoloEquipo = false;
         const btnFiltro = document.getElementById('admin-filtro-equipo');
         if (btnFiltro) { btnFiltro.classList.remove('on'); btnFiltro.textContent = 'SOLO ESTE EQUIPO'; }
@@ -5024,9 +5525,11 @@
         renderNewTeamsGrid();
         adminCambiaTipoRol();
         renderAdminEquiposGrid();
+        adminShowTab('admin-tab-usuarios');
         document.getElementById('admin-modal').style.display = 'block';
         refreshAdminList();
         renderAdminTeamBar();   // el desplegable manda: deja el equipo en uno que si se administre
+        updateRolVivoAdminCard();
     }
 
     // El equipo de destino ya lo dice el desplegable de arriba, asi que el alta de
@@ -5035,7 +5538,7 @@
     ;
 
     // ─── GESTIÓN DEL EQUIPO SELECCIONADO ────────────────────────────────────
-    // Sin pestañas: todo gira en torno al equipo del desplegable.
+    // El equipo elegido en el desplegable afecta a Usuarios, Editar equipos y Rol.
     //   ✎  renombra el equipo   ·   ACTIVO lo activa/desactiva   ·   + lo crea (solo super admin)
     function renderAdminTeamBar() {
         const sel = document.getElementById('admin-team-select');
@@ -5053,6 +5556,13 @@
         sel.innerHTML = lista.map(t =>
             `<option value="${escapeAttr(t)}"${t === adminEquipoSel ? ' selected' : ''}>${escapeHtml(equipoNombre(t))}${equipoActivo(t) ? '' : ' (DESACTIVADO)'}</option>`
         ).join('') || '<option value="">SIN EQUIPOS</option>';
+        // Sincronizar tambien el selector de la pestaña Rol
+        const selRol = document.getElementById('admin-rol-equipo-select');
+        if (selRol) {
+            selRol.innerHTML = lista.map(t =>
+                `<option value="${escapeAttr(t)}"${t === adminEquipoSel ? ' selected' : ''}>${escapeHtml(equipoNombre(t))}${equipoActivo(t) ? '' : ' (DESACTIVADO)'}</option>`
+            ).join('') || '<option value="">SIN EQUIPOS</option>';
+        }
         // Con un solo equipo no hace falta desplegable: se muestra el nombre fijo
         const varios = lista.length > 1;
         const nombreFijo = document.getElementById('admin-team-nombre');
@@ -5452,6 +5962,7 @@
             if (rec && rec.roles) delete rec.roles[team];
             set(ref(db, rolesPath(key, team)), null).then(() => {
                 sincronizarIndiceAdmins(key, team);
+                sincronizarIndiceTls(key, team);
                 sincronizarIndiceGlobalAdmins(key);
                 sincronizarIndiceSupervisors(key);
                 sincronizarIndicePlanners(key);
@@ -5463,6 +5974,7 @@
                 console.error('FIREBASE WRITE ERROR', e);
                 aplicarRolesLocal(key, team, previo);
                 sincronizarIndiceAdmins(key, team);
+                sincronizarIndiceTls(key, team);
                 sincronizarIndiceGlobalAdmins(key);
                 sincronizarIndiceSupervisors(key);
                 sincronizarIndicePlanners(key);
@@ -6614,21 +7126,20 @@
         updateTechFilterDropdown();
         actualizarTiraEquipos();
         updateRolSyncButton();
-        loadShiftRolCodes();
     }
     // Llega un dato de uno de los turnos. En la vista de un equipo, el de pantalla
     // se copia tal cual a las variables de siempre (ahí viven todas las escrituras);
     // en la vista de todos solo se guarda en el mapa, que es de donde se pinta.
     function llegaTurno(team, campo, valor) {
         if (!turnoDatos[team]) turnoDatos[team] = { aviones: [], techs: [], header: {} };
-        turnoDatos[team][campo] = valor;
+        turnoDatos[team][campo] = (campo === 'techs') ? normalizeTechs(valor) : valor;
         const enPantalla = (team === currentTeam && !vistaTodos);
         const enPantallaTodos = (team === currentTeam && vistaTodos);
         if (enPantalla || enPantallaTodos) {
             if (campo === 'aviones') {
                 avionesData = valor || [];
             } else if (campo === 'techs') {
-                shiftTechs = valor || [];
+                shiftTechs = normalizeTechs(valor || []);
             } else {
                 aplicarHeaderEquipo(team, valor || {});
                 return;
@@ -6751,10 +7262,13 @@
     }
     // Los técnicos de todos los equipos juntos (para agrupar y para el filtro).
     function listaTechsAMostrar() {
-        if (!vistaTodos) return shiftTechs;
+        if (!vistaTodos) return techsNames();
         const todos = [];
         equiposAVisitar().forEach(t => {
-            ((turnoDatos[t] || {}).techs || []).forEach(x => { if (todos.indexOf(x) === -1) todos.push(x); });
+            normalizeTechs((turnoDatos[t] || {}).techs || []).forEach(x => {
+                const n = techNombre(x);
+                if (n && todos.indexOf(n) === -1) todos.push(n);
+            });
         });
         return todos.sort();
     }
@@ -7876,35 +8390,64 @@
         if(cb) setTimeout(() => cb(val), 0);
     };
 
+    function getCombinedEquipoTechs() {
+        const map = new Map();
+        // Técnicos del Sheet del equipo actual (oficial)
+        (equipoSheetTechs || []).forEach(t => {
+            const nombre = resolveSheetTechName(t.bp, t.nombre);
+            if (!nombre) return;
+            map.set(nombre, Object.assign({}, t, { nombre, fuente: 'sheet' }));
+        });
+        // Técnicos manuales: solo si no chocan con un Sheet; si chocan, se marcan como duplicado oculto
+        (globalTechs || []).forEach((nombre, index) => {
+            const n = String(nombre || '').trim().toUpperCase();
+            if (!n || map.has(n)) return;
+            map.set(n, { nombre: n, bp: null, grupo: 'MANUAL', fuente: 'manual', index });
+        });
+        return Array.from(map.values()).sort((a, b) => a.nombre.localeCompare(b.nombre));
+    }
+
     function updateGlobalTechsUI() {
         const datalist = document.getElementById('global-techs-list');
-        datalist.innerHTML = '';
-        globalTechs.forEach(tech => {
-            const option = document.createElement('option');
-            option.value = tech;
-            datalist.appendChild(option);
-        });
+        const list = getCombinedEquipoTechs();
+        if (datalist) {
+            datalist.innerHTML = '';
+            list.forEach(t => {
+                const option = document.createElement('option');
+                option.value = t.nombre;
+                datalist.appendChild(option);
+            });
+        }
 
         const container = document.getElementById('global-techs-container');
         if (container) {
             container.innerHTML = '';
-            if(globalTechs.length === 0){
-                container.innerHTML = '<span style="font-size:10px; color:var(--comment); font-style:italic;">No hay técnicos en la base global.</span>';
+            if (!list.length) {
+                container.innerHTML = '<span style="font-size:10px; color:var(--comment); font-style:italic;">' +
+                    (equipoSheetTechsLoaded ? 'No hay técnicos en el equipo.' : 'Cargando técnicos del Sheet...') +
+                    '</span>';
+                populateGlobalTechGroupFilter();
                 return;
             }
-            globalTechs.forEach((tech, index) => {
-                const isSelected = selectedGlobalTech === tech;
+            list.forEach(t => {
+                const isSelected = selectedGlobalTech === t.nombre;
                 const pill = document.createElement('div');
                 pill.className = 'tech-pill' + (isSelected ? ' selected-tech-pill' : '');
-                pill.dataset.tech = tech;
-                pill.dataset.index = index;
-                const turnoPill = (globalTechTurnos && globalTechTurnos[sanitizeKey(tech)]) || '';
+                pill.dataset.tech = t.nombre;
+                pill.dataset.bp = t.bp || '';
+                pill.dataset.grupo = t.grupo || '';
+                pill.dataset.fuente = t.fuente || '';
+                pill.dataset.manualIndex = (t.fuente === 'manual' ? String(t.index) : '');
+                const turnoPill = t.fuente === 'manual' ? ((globalTechTurnos && globalTechTurnos[sanitizeKey(t.nombre)]) || '') : '';
+                const badge = t.fuente === 'sheet' ? (t.bp ? '📋 ' : '') : '✋ ';
                 pill.innerHTML = `
-                    <span class="tech-name" title="Ver detalles${turnoPill ? ' · ' + turnoPill : ''}">${escapeHtml(tech)}</span>
-                    <span class="tech-remove" title="Eliminar de la Base">✖</span>
+                    <span class="tech-name" title="${t.bp ? 'BP ' + t.bp + ' · ' : ''}${t.grupo || ''}${turnoPill ? ' · ' + turnoPill : ''}">${badge}${escapeHtml(t.nombre)}</span>
+                    <span class="tech-remove" title="${t.fuente === 'manual' ? 'Eliminar manual' : 'Técnico del Sheet'}">${t.fuente === 'manual' ? '✖' : ''}</span>
                 `;
-                pill.querySelector('.tech-name').addEventListener('click', () => showGlobalTechDetails(tech));
-                pill.querySelector('.tech-remove').addEventListener('click', () => removeGlobalTech(index));
+                pill.querySelector('.tech-name').addEventListener('click', () => showGlobalTechDetails(t.nombre));
+                if (t.fuente === 'manual') {
+                    pill.querySelector('.tech-remove').addEventListener('click', () => removeGlobalTech(t.index));
+                }
                 container.appendChild(pill);
             });
             populateGlobalTechGroupFilter();
@@ -7917,52 +8460,120 @@
         updateGlobalTechsUI();
         const content = document.getElementById('global-tech-details-content');
         if (!content) return;
-        const data = globalTechDetails[techName];
-        const turnoActual = (globalTechTurnos && globalTechTurnos[sanitizeKey(techName)]) || '';
-        if (!data) {
-            content.innerHTML = `<div style="color:var(--comment);">NO HAY DATOS ADICIONALES PARA <b>${escapeHtml(techName)}</b>.</div>
-                <div style="margin-top:8px;"><b>TURNO:</b>
+        const t = getCombinedEquipoTechs().find(x => x.nombre === techName);
+        if (!t) {
+            content.innerHTML = '<div style="font-size:10px; color:var(--comment);">SELECCIONA UN TÉCNICO DE LA LISTA PARA VER SUS DATOS.</div>';
+            return;
+        }
+        const turnoActual = t.fuente === 'manual' ? ((globalTechTurnos && globalTechTurnos[sanitizeKey(techName)]) || '') : '';
+
+        // Técnico manual (sin BP): datos editables localmente
+        if (t.fuente === 'manual') {
+            content.innerHTML = `
+                <div style="margin-bottom:8px;">
+                    <b>NOMBRE:</b>
+                    <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
+                        <span id="global-tech-name-display" style="flex:1; font-weight:600;">${escapeHtml(techName)}</span>
+                        <span class="edit-pencil" onclick="startEditGlobalTechName()" title="Editar nombre">✏️</span>
+                    </div>
+                    <div id="global-tech-name-edit" style="display:none; margin-top:4px;">
+                        <div style="display:flex; gap:6px;">
+                            <input type="text" id="edit-global-tech-name" value="${escapeAttr(techName)}" style="flex:1; font-size:10px; text-transform:uppercase; margin:0;">
+                            <button class="btn-leader" onclick="saveGlobalTechNameEdit()" style="width:70px; font-size:10px;">GUARDAR</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-bottom:6px;"><b>TIPO:</b> MANUAL</div>
+                <div style="margin-bottom:6px;"><b>BP:</b> —</div>
+                <div style="margin-bottom:6px;"><b>TURNO:</b>
                     <select id="global-tech-turno-sel" style="margin-left:6px; font-size:10px;" onchange="guardarTurnoGlobalTech('${escapeJsString(techName)}', this.value)">
                         <option value="Todos"${(!turnoActual || turnoActual === 'Todos') ? ' selected' : ''}>TODOS</option>
                         <option value="Turno Día"${turnoActual === 'Turno Día' ? ' selected' : ''}>TURNO DÍA</option>
                         <option value="Turno Tarde"${turnoActual === 'Turno Tarde' ? ' selected' : ''}>TURNO TARDE</option>
                         <option value="Turno Noche"${turnoActual === 'Turno Noche' ? ' selected' : ''}>TURNO NOCHE</option>
                     </select>
-                </div>`;
+                </div>
+            `;
+            const input = document.getElementById('edit-global-tech-name');
+            if (input) input.addEventListener('keypress', e => { if (e.key === 'Enter') saveGlobalTechNameEdit(); });
             return;
         }
-        const vencimientos = data.vencimientos || {};
-        let vencHtml = '';
-        const vencKeys = Object.keys(vencimientos);
-        if (vencKeys.length) {
-            vencHtml = '<div style="margin-top:6px;"><b>VENCIMIENTOS:</b><ul style="margin:4px 0 0 0; padding-left:14px;">' +
-                vencKeys.map(k => `<li>${escapeHtml(k)}: ${escapeHtml(vencimientos[k])}</li>`).join('') +
-                '</ul></div>';
-        }
-        content.innerHTML = `
-            <div style="margin-bottom:8px;">
-                <b>NOMBRE:</b>
-                <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
-                    <span id="global-tech-name-display" style="flex:1; font-weight:600;">${escapeHtml(data.nombre || techName)}</span>
-                    <span class="edit-pencil" onclick="startEditGlobalTechName()" title="Editar nombre">✏️</span>
-                </div>
-                <div id="global-tech-name-edit" style="display:none; margin-top:4px;">
-                    <div style="display:flex; gap:6px;">
-                        <input type="text" id="edit-global-tech-name" value="${escapeAttr(data.nombre || techName)}" style="flex:1; font-size:10px; text-transform:uppercase; margin:0;">
-                        <button class="btn-leader" onclick="saveGlobalTechNameEdit()" style="width:70px; font-size:10px;">GUARDAR</button>
+
+        // Técnico con BP: leer siempre del Google Sheet
+        content.innerHTML = '<div style="font-size:12px; color:var(--comment);">CARGANDO DATOS DEL ROL...</div>';
+        fetchTechDetailsFromSheet(t.bp).then(data => {
+            if (!data) {
+                content.innerHTML = `<div style="color:var(--comment);">NO SE ENCONTRARON DATOS PARA <b>${escapeHtml(techName)}</b> (BP ${escapeHtml(t.bp)}).</div>`;
+                return;
+            }
+            const libreriaNombre = (libreriaTecnicos[t.bp] || {}).nombre || '';
+            const nombreMostrado = libreriaNombre || data.nombre || techName;
+            const vencimientos = data.vencimientos || {};
+            let vencHtml = '';
+            const vencKeys = Object.keys(vencimientos);
+            if (vencKeys.length) {
+                vencHtml = '<div style="margin-top:6px;"><b>VENCIMIENTOS:</b><ul style="margin:4px 0 0 0; padding-left:14px;">' +
+                    vencKeys.map(k => `<li>${escapeHtml(k)}: ${escapeHtml(vencimientos[k])}</li>`).join('') +
+                    '</ul></div>';
+            }
+            content.innerHTML = `
+                <div style="margin-bottom:8px;">
+                    <b>NOMBRE:</b>
+                    <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
+                        <span id="global-tech-name-display" style="flex:1; font-weight:600;">${escapeHtml(nombreMostrado)}</span>
+                        <span class="edit-pencil" onclick="startEditSheetTechName('${escapeJsString(t.bp)}', '${escapeJsString(nombreMostrado)}')" title="Editar nombre">✏️</span>
+                    </div>
+                    <div id="global-tech-name-edit" style="display:none; margin-top:4px;">
+                        <div style="display:flex; gap:6px;">
+                            <input type="text" id="edit-global-tech-name" value="${escapeAttr(nombreMostrado)}" style="flex:1; font-size:10px; text-transform:uppercase; margin:0;">
+                            <button class="btn-leader" onclick="saveSheetTechNameEdit('${escapeJsString(t.bp)}')" style="width:70px; font-size:10px;">GUARDAR</button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div style="margin-bottom:6px;"><b>BP:</b> ${escapeHtml(data.bp || '—')}</div>
-            <div style="margin-bottom:6px;"><b>GRUPO:</b> ${escapeHtml(data.grupo || '—')}</div>
-            <div style="margin-bottom:6px;"><b>SKILL:</b> ${escapeHtml(data.skill || '—')}</div>
-            <div style="margin-bottom:6px;"><b>NIVEL:</b> ${escapeHtml(data.nivel || '—')}</div>
-            <div style="margin-bottom:6px;"><b>ÁREA:</b> ${escapeHtml(data.area || '—')}</div>
-            <div style="margin-bottom:6px;"><b>LICENCIA:</b> ${escapeHtml(data.licencia || '—')}</div>
-            ${vencHtml}
-        `;
+                <div style="margin-bottom:6px;"><b>BP:</b> ${escapeHtml(t.bp)}</div>
+                <div style="margin-bottom:6px;"><b>GRUPO:</b> ${escapeHtml(data.grupo || t.grupo || '—')}</div>
+                <div style="margin-bottom:6px;"><b>SKILL:</b> ${escapeHtml(data.skill || '—')}</div>
+                <div style="margin-bottom:6px;"><b>NIVEL:</b> ${escapeHtml(data.nivel || '—')}</div>
+                <div style="margin-bottom:6px;"><b>ÁREA:</b> ${escapeHtml(data.area || '—')}</div>
+                <div style="margin-bottom:6px;"><b>LICENCIA:</b> ${escapeHtml(data.licencia || '—')}</div>
+                ${vencHtml}
+            `;
+        }).catch(e => {
+            console.error('ERROR CARGANDO DETALLES DEL TÉCNICO:', e);
+            content.innerHTML = `<div style="color:var(--danger);">ERROR AL CARGAR DATOS:<br>${escapeHtml(e.message || e)}</div>`;
+        });
+    }
+
+    function startEditSheetTechName(bp, nombreActual) {
+        selectedGlobalTech = null; // evita que updateGlobalTechsUI pise el input
+        const display = document.getElementById('global-tech-name-display');
+        const pencil = document.querySelector('.edit-pencil');
+        const editWrap = document.getElementById('global-tech-name-edit');
         const input = document.getElementById('edit-global-tech-name');
-        if (input) input.addEventListener('keypress', e => { if (e.key === 'Enter') saveGlobalTechNameEdit(); });
+        if (display) display.style.display = 'none';
+        if (pencil) pencil.style.display = 'none';
+        if (editWrap) editWrap.style.display = '';
+        if (input) { input.value = nombreActual; setTimeout(() => input.focus(), 50); }
+    }
+
+    async function saveSheetTechNameEdit(bp) {
+        if (!puedeCargarTecnicos()) return showConfirm('NO PUEDES MODIFICAR LA BASE DE TÉCNICOS EN ESTE EQUIPO.', null);
+        const input = document.getElementById('edit-global-tech-name');
+        if (!input) return;
+        const nuevoNombre = input.value.trim().toUpperCase();
+        if (!nuevoNombre) return;
+        try {
+            await dbSet(ref(db, 'mantenimiento/alisteo/libreria_tecnicos/' + bp), { nombre: nuevoNombre }, 'EDITAR NOMBRE EN LIBRERÍA');
+            libreriaTecnicos[bp] = { nombre: nuevoNombre };
+            showToast('✅ NOMBRE ACTUALIZADO');
+            await loadGlobalTechDetails();
+            selectedGlobalTech = nuevoNombre;
+            updateGlobalTechsUI();
+            showGlobalTechDetails(nuevoNombre);
+        } catch (e) {
+            console.error('ERROR EDITANDO NOMBRE DEL TÉCNICO:', e);
+            showConfirm('ERROR AL EDITAR EL NOMBRE.\n' + (e.message || e), null);
+        }
     }
 
     function startEditGlobalTechName() {
@@ -8004,39 +8615,11 @@
                 tareas.push(dbSet(ref(db, teamPath + '/global_tech_turnos/' + sanitizeKey(newName)), turnoPrevio, 'RENOMBRAR TURNO DEL TÉCNICO'));
             }
 
-            // 2. Renombrar en rol_mensual.tecnicos y en asignaciones
-            const snap = await get(ref(db, teamPath + '/rol_mensual'));
-            if (snap.exists()) {
-                const rol = snap.val();
-                const tecnicos = rol.tecnicos || {};
-                if (tecnicos[oldName]) {
-                    const info = Object.assign({}, tecnicos[oldName], { nombre: newName });
-                    delete tecnicos[oldName];
-                    tecnicos[newName] = info;
-                }
-                const asignaciones = rol.asignaciones || {};
-                Object.keys(asignaciones).forEach(fecha => {
-                    const dia = asignaciones[fecha];
-                    ['Turno Día', 'Turno Tarde', 'Turno Noche'].forEach(turno => {
-                        const arr = dia[turno];
-                        if (Array.isArray(arr)) {
-                            const pos = arr.indexOf(oldName);
-                            if (pos !== -1) arr[pos] = newName;
-                        }
-                    });
-                    if (dia.codigos && dia.codigos[oldName] !== undefined) {
-                        dia.codigos[newName] = dia.codigos[oldName];
-                        delete dia.codigos[oldName];
-                    }
-                });
-                tareas.push(dbSet(ref(db, teamPath + '/rol_mensual'), Object.assign({}, rol, { tecnicos, asignaciones }), 'RENOMBRAR TÉCNICO EN ROL'));
-            }
-
-            // 3. También renombrar en el turno que se está viendo actualmente
-            const idxTurno = shiftTechs.indexOf(oldName);
+            // 2. También renombrar en el turno que se está viendo actualmente
+            const idxTurno = findTechIndexByName(oldName);
             if (idxTurno !== -1) {
-                shiftTechs[idxTurno] = newName;
-                shiftTechs.sort();
+                shiftTechs[idxTurno].nombre = newName;
+                shiftTechs.sort((a, b) => techNombre(a).localeCompare(techNombre(b)));
                 if (dbRefs && dbRefs.techs) tareas.push(dbSet(dbRefs.techs, shiftTechs, 'ACTUALIZAR TÉCNICOS DEL TURNO'));
             }
             let avionesChanged = false;
@@ -8067,20 +8650,17 @@
     }
 
     async function loadGlobalTechDetails() {
+        // Cargar libreria de sobrescrituras de nombres (si existe) y los tecnicos del
+        // Sheet filtrados por grupos del equipo actual.
+        globalTechDetails = {};
         try {
-            const snap = await get(ref(db, datosPath() + '/rol_mensual'));
-            if (!snap.exists()) { globalTechDetails = {}; return; }
-            const rol = snap.val();
-            globalTechDetails = {};
-            if (rol && rol.tecnicos) {
-                Object.values(rol.tecnicos).forEach(t => {
-                    if (t && t.nombre) globalTechDetails[t.nombre] = t;
-                });
-            }
+            const snap = await get(ref(db, 'mantenimiento/alisteo/libreria_tecnicos'));
+            libreriaTecnicos = snap.val() || {};
         } catch (e) {
-            console.error('ERROR CARGANDO DETALLES DEL ROL:', e);
-            globalTechDetails = {};
+            console.warn('[loadGlobalTechDetails] no se pudo cargar libreria_tecnicos:', e);
+            libreriaTecnicos = {};
         }
+        await loadEquipoSheetTechs();
     }
 
     function openAddGlobalTechModal() {
@@ -8125,7 +8705,7 @@
         const sel = document.getElementById('global-techs-group-filter');
         if (!sel) return;
         const current = sel.value;
-        const groups = Array.from(new Set(Object.values(globalTechDetails).map(t => t.grupo).filter(Boolean))).sort();
+        const groups = Array.from(new Set(getCombinedEquipoTechs().map(t => t.grupo).filter(Boolean))).sort();
         sel.innerHTML = '<option value="">TODOS LOS GRUPOS</option>' +
             groups.map(g => `<option value="${escapeAttr(g)}">${escapeHtml(g)}</option>`).join('');
         sel.value = current;
@@ -8139,9 +8719,9 @@
         const groupFilter = document.getElementById('global-techs-group-filter')?.value || '';
         container.querySelectorAll('.tech-pill').forEach(pill => {
             const name = pill.dataset.tech || '';
-            const data = globalTechDetails[name];
+            const grupo = pill.dataset.grupo || '';
             const matchesSearch = !q || name.toUpperCase().includes(q);
-            const matchesGroup = !groupFilter || (data && data.grupo === groupFilter);
+            const matchesGroup = !groupFilter || grupo === groupFilter;
             pill.style.display = (matchesSearch && matchesGroup) ? '' : 'none';
         });
     }
@@ -8149,7 +8729,7 @@
     async function removeGlobalTech(index) {
         if (!puedeCargarTecnicos()) return showConfirm('NO PUEDES MODIFICAR LA BASE DE TÉCNICOS EN ESTE EQUIPO.', null);
         const nombre = globalTechs[index];
-        showConfirm(`¿CONFIRMAS ELIMINAR A ${nombre} DE LA BASE DE DATOS GLOBAL?\n\nTambién se quitará de las asignaciones del rol mensual.`, async () => {
+        showConfirm(`¿CONFIRMAS ELIMINAR A ${nombre} DE LA BASE DE TÉCNICOS MANUALES?`, async () => {
             if (selectedGlobalTech === nombre) {
                 selectedGlobalTech = null;
                 const content = document.getElementById('global-tech-details-content');
@@ -8160,591 +8740,54 @@
             delete globalTechTurnos[sanitizeKey(nombre)];
             tareas.push(remove(ref(db, datosPath() + '/global_tech_turnos/' + sanitizeKey(nombre))));
 
-            // También eliminar del rol mensual: de la lista de técnicos y de todas las asignaciones
-            try {
-                const teamPath = datosPath();
-                const snap = await get(ref(db, teamPath + '/rol_mensual'));
-                if (snap.exists()) {
-                    const rol = snap.val();
-                    let cambio = false;
-                    const tecnicos = Object.assign({}, rol.tecnicos || {});
-                    if (tecnicos[nombre]) { delete tecnicos[nombre]; cambio = true; }
-                    const asignaciones = Object.assign({}, rol.asignaciones || {});
-                    Object.keys(asignaciones).forEach(fecha => {
-                        const dia = asignaciones[fecha];
-                        if (!dia) return;
-                        ['Turno Día', 'Turno Tarde', 'Turno Noche'].forEach(turno => {
-                            const arr = dia[turno];
-                            if (Array.isArray(arr)) {
-                                const pos = arr.indexOf(nombre);
-                                if (pos !== -1) { arr.splice(pos, 1); cambio = true; }
-                            }
-                        });
-                        if (dia.codigos && dia.codigos[nombre] !== undefined) {
-                            delete dia.codigos[nombre];
-                            cambio = true;
-                        }
-                    });
-                    if (cambio) {
-                        tareas.push(dbSet(ref(db, teamPath + '/rol_mensual'), Object.assign({}, rol, { tecnicos, asignaciones }), 'ELIMINAR TÉCNICO DEL ROL'));
-                    }
-                }
-            } catch (e) {
-                console.error('ERROR ELIMINANDO TÉCNICO DEL ROL MENSUAL:', e);
-            }
-
             await Promise.all(tareas);
-            showToast(`✅ ${nombre} ELIMINADO DE LA BASE GLOBAL Y DEL ROL MENSUAL`);
+            showToast(`✅ ${nombre} ELIMINADO DE LA BASE GLOBAL`);
         });
     }
 
     async function openManageTechsModal() {
         document.getElementById('manage-techs-modal').style.display = 'block';
+        const searchInput = document.getElementById('global-techs-search');
+        if (searchInput) searchInput.value = '';
+        selectedGlobalTech = null;
+        const content = document.getElementById('global-tech-details-content');
+        if (content) content.innerHTML = '<div style="font-size:10px; color:var(--comment);">SELECCIONA UN TÉCNICO DE LA LISTA PARA VER SUS DATOS.</div>';
         await loadGlobalTechDetails();
         updateGlobalTechsUI();
-        if (selectedGlobalTech) showGlobalTechDetails(selectedGlobalTech);
     }
 
-    // ─── CARGA DE ROL MENSUAL ───────────────────────────────────────────────
-    const MESES_ES = {
-        ene: 1, feb: 2, mar: 3, abr: 4, may: 5, jun: 6,
-        jul: 7, ago: 8, sep: 9, oct: 10, nov: 11, dic: 12,
-        jan: 1, apr: 4, aug: 8, dec: 12
-    };
-    const MESES_ABBR = ['', 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-
-    function formatRolCell(val) {
-        if (val == null || val === '') return '';
-        if (val instanceof Date) {
-            const d = val.getDate();
-            const m = MESES_ABBR[val.getMonth() + 1] || '';
-            const y = val.getFullYear();
-            if (m) return `${d}-${m}-${y}`;
-            return String(val);
-        }
-        if (typeof val === 'number' && val > 30000 && val < 100000 && typeof XLSX !== 'undefined' && XLSX.SSF) {
-            try {
-                const p = XLSX.SSF.parse_date_code(val);
-                if (p && p.y && p.m && p.d) {
-                    const m = MESES_ABBR[p.m] || '';
-                    return `${p.d}-${m}-${p.y}`;
-                }
-            } catch (e) {}
-        }
-        return String(val).trim();
-    }
-    let rolImportState = null;
-    let rolImportLastByTeam = {};
-
-    function parseMonthYearFromHeader(str) {
-        const m = String(str || '').toLowerCase().match(/(\d{1,2})[-/]([a-záéíóúñ]{3,})(?:[-/](\d{2,4}))?/);
-        if (!m) return null;
-        const month = MESES_ES[m[2]];
-        if (!month) return null;
-        let year = m[3] ? parseInt(m[3], 10) : null;
-        if (year !== null && year < 100) year += 2000;
-        return { day: parseInt(m[1], 10), month, year };
-    }
-
-    function isNextDay(prev, curr) {
-        if (curr.col !== prev.col + 1) return false;
-        const prevYear = prev.year || new Date().getFullYear();
-        const prevDate = new Date(prevYear, prev.month - 1, prev.day);
-        const nextDate = new Date(prevDate.getFullYear(), prevDate.getMonth(), prevDate.getDate() + 1);
-        const currYear = curr.year || nextDate.getFullYear();
-        return curr.day === nextDate.getDate() && curr.month === nextDate.getMonth() + 1 && currYear === nextDate.getFullYear();
-    }
-
-    function findDayColumns(row) {
-        // Buscar una secuencia larga de fechas consecutivas (día siguiente al anterior)
-        // para distinguir el encabezado del rol de fechas sueltas de vencimientos.
-        const candidates = [];
-        for (let i = 0; i < row.length; i++) {
-            const info = parseMonthYearFromHeader(row[i]);
-            if (info) candidates.push(Object.assign({ col: i }, info));
-        }
-        if (candidates.length < 3) return null;
-
-        let best = null;
-        let current = [candidates[0]];
-        for (let i = 1; i < candidates.length; i++) {
-            const prev = candidates[i - 1];
-            const curr = candidates[i];
-            if (isNextDay(prev, curr)) {
-                current.push(curr);
-            } else {
-                if (!best || current.length > best.length) best = current;
-                current = [curr];
-            }
-        }
-        if (!best || current.length > best.length) best = current;
-        if (!best || best.length < 5) return null;
-
-        return {
-            start: best[0].col,
-            end: best[best.length - 1].col,
-            days: best
-        };
-    }
-
-    function esFilaNombresColumna(row) {
-        const vals = row.map(c => String(c || '').trim().toUpperCase());
-        return vals.indexOf('NOMBRE GRUPO') !== -1 && vals.indexOf('NOMBRE') !== -1 && vals.indexOf('BP') !== -1;
-    }
-
-    function buildRolIndexes(headerRow, dayCols) {
-        const idx = {};
-        for (let i = 0; i < headerRow.length; i++) {
-            const val = String(headerRow[i] || '').trim().toUpperCase();
-            if (val === 'NOMBRE GRUPO') idx.grupo = i;
-            if (val === 'BP') idx.bp = i;
-            if (val === 'NOMBRE') idx.nombre = i;
-            if (val === 'SKILL') idx.skill = i;
-            if (val === 'NIVEL') idx.nivel = i;
-            if (val === 'AREA') idx.area = i;
-            if (val === 'MEC') idx.mec = i;
-            if (val === 'SUP') idx.sup = i;
-        }
-        if (idx.nombre === undefined || idx.grupo === undefined) return null;
-
-        const certs = [];
-        const fijas = new Set(['DOTACION', 'DOTACIÓN', 'RUT', 'MEC', 'SUP', 'AREA', 'NOMBRE GRUPO', 'BP', 'NOMBRE', 'SKILL', 'NIVEL', 'OBSERVACIÓN', 'OBSERVACION']);
-        for (let i = 0; i < dayCols.start; i++) {
-            const raw = String(headerRow[i] || '').trim();
-            const up = raw.toUpperCase();
-            // Saltar columnas fijas conocidas y vacías
-            if (!raw || fijas.has(up) ||
-                i === idx.grupo || i === idx.bp || i === idx.nombre ||
-                i === idx.skill || i === idx.nivel || i === idx.area ||
-                i === idx.mec || i === idx.sup) continue;
-            certs.push({ col: i, name: raw.replace(/\s+/g, ' ') });
-        }
-        idx.certs = certs;
-        return idx;
-    }
-
-    function detectYearFromFile(rows) {
-        for (const row of rows) {
-            for (let i = 0; i < row.length - 1; i++) {
-                if (String(row[i] || '').toLowerCase().includes('fecha:')) {
-                    const txt = String(row[i + 1] || '');
-                    const m = txt.match(/(\d{1,2})[-/]([a-záéíóúñ]{3,})[-/](\d{2,4})/i);
-                    if (m) {
-                        let y = parseInt(m[3], 10);
-                        if (y < 100) y += 2000;
-                        return y;
-                    }
-                }
-            }
-        }
-        return new Date().getFullYear();
-    }
-
-    function cleanGroupName(name) {
-        return String(name || '')
-            .trim()
-            .toUpperCase()
-            .replace(/\s*\d+\s*$/, '')
-            .trim();
-    }
-
-    function cleanCode(code) {
-        return String(code || '').trim().toUpperCase().replace(/[.,;]$/, '');
-    }
-
-    function codeToTurno(code) {
-        const c = cleanCode(code);
-        if (!c) return null;
-        const m = c.match(/^(\d+)H(\d{2})$/);
-        if (!m) return null;
-        const hour = parseInt(m[2], 10);
-        if (hour >= 5 && hour <= 8) return 'Turno Día';
-        if (hour >= 13 && hour <= 14) return 'Turno Tarde';
-        if (hour >= 20 && hour <= 24) return 'Turno Noche';
-        return null;
-    }
-
-    function parseRolFile(arrayBuffer, fileName) {
-        if (typeof XLSX === 'undefined') {
-            throw new Error('LA LIBRERÍA PARA LEER EXCEL/CSV NO SE CARGÓ. REVISA TU CONEXIÓN.');
-        }
-        let workbook;
+    async function loadEquipoSheetTechs() {
+        const team = currentTeam;
+        equipoSheetTechs = [];
+        equipoSheetTechsLoaded = false;
+        if (!team) return;
+        const monthKey = getCurrentMonthKey();
+        const url = getRolSheetUrlForMonth(monthKey);
+        if (!url) return;
+        const gruposEquipo = (configGruposPorEquipo[sanitizeTeamId(team)] || []).map(g => String(g).trim().toUpperCase()).filter(Boolean);
         try {
-            workbook = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
+            const all = await fetchRolSheetAllTechs(monthKey);
+            equipoSheetTechs = all.filter(t => {
+                const g = String(t.grupo || '').trim().toUpperCase();
+                return gruposEquipo.some(ge => ge === g);
+            }).map(t => ({
+                bp: String(t.bp || '').trim().toUpperCase(),
+                nombre: String(t.nombre || '').trim().toUpperCase(),
+                grupo: String(t.grupo || '').trim().toUpperCase(),
+                skill: String(t.skill || '').trim().toUpperCase(),
+                nivel: String(t.nivel || '').trim().toUpperCase(),
+                area: String(t.area || '').trim().toUpperCase(),
+                licencia: String(t.licencia || '').trim().toUpperCase(),
+                vencimientos: t.vencimientos || {},
+                fuente: 'sheet'
+            }));
+            equipoSheetTechsLoaded = true;
         } catch (e) {
-            throw new Error('NO SE PUDO LEER EL ARCHIVO: ' + (e.message || e));
-        }
-
-        // Buscar la primera hoja que tenga encabezados de días
-        let json = null;
-        for (const sheetName of workbook.SheetNames) {
-            const sheet = workbook.Sheets[sheetName];
-            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true });
-            const formatted = rows.map(row => row.map(formatRolCell));
-            if (formatted.some(r => findDayColumns(r))) {
-                json = formatted;
-                break;
-            }
-        }
-        if (!json) {
-            throw new Error('NO SE DETECTÓ EL MES DEL ROL. REVISA QUE EL ARCHIVO TENGA LOS ENCABEZADOS DE DÍAS (1-oct, 2-oct, ...).');
-        }
-
-        let baseYear = detectYearFromFile(json);
-
-        const techs = [];
-        let dayCols = null;
-        let indexes = null;
-        let month = null, monthKey = null;
-
-        for (const row of json) {
-            const d = findDayColumns(row);
-            if (d) {
-                dayCols = d;
-                indexes = null;
-                const first = d.days[0];
-                month = first.month;
-                baseYear = first.year || baseYear;
-                monthKey = `${baseYear}-${String(month).padStart(2, '0')}`;
-                continue;
-            }
-            if (!dayCols) continue;
-
-            if (!indexes && esFilaNombresColumna(row)) {
-                indexes = buildRolIndexes(row, dayCols);
-                continue;
-            }
-            if (!indexes) continue;
-
-            const nombre = String(row[indexes.nombre] || '').trim().toUpperCase();
-            const grupoRaw = String(row[indexes.grupo] || '').trim().toUpperCase();
-            const grupo = cleanGroupName(grupoRaw);
-            if (!nombre || !grupoRaw || !grupo) continue;
-
-            const bp = String(row[indexes.bp] || '').trim();
-            const skill = String(row[indexes.skill] || '').trim().toUpperCase();
-            const nivel = String(row[indexes.nivel] || '').trim().toUpperCase();
-            const area = indexes.area !== undefined ? String(row[indexes.area] || '').trim().toUpperCase() : '';
-            const licencia = String(row[indexes.mec] || row[indexes.sup] || '').trim();
-            const vencimientos = {};
-            if (indexes.certs) {
-                indexes.certs.forEach(c => {
-                    const v = String(row[c.col] || '').trim();
-                    if (v) vencimientos[c.name] = v;
-                });
-            }
-
-            const asignaciones = {};
-            dayCols.days.forEach(d => {
-                const code = cleanCode(row[d.col]);
-                const turno = codeToTurno(code);
-                if (turno) {
-                    const year = d.year || baseYear;
-                    const key = `${year}-${String(d.month).padStart(2, '0')}-${String(d.day).padStart(2, '0')}`;
-                    if (!asignaciones[key]) asignaciones[key] = [];
-                    asignaciones[key].push({ turno, code });
-                }
-            });
-
-            techs.push({
-                id: techs.length,
-                nombre,
-                grupoRaw,
-                grupo,
-                bp,
-                skill,
-                nivel,
-                area,
-                licencia,
-                vencimientos,
-                asignaciones
-            });
-        }
-
-        if (!monthKey) throw new Error('NO SE DETECTÓ EL MES DEL ROL. REVISA QUE EL ARCHIVO TENGA LOS ENCABEZADOS DE DÍAS.');
-        if (!techs.length) throw new Error('NO SE ENCONTRARON TÉCNICOS EN EL ARCHIVO.');
-
-        const groups = Array.from(new Set(techs.map(t => t.grupo))).sort();
-        return { monthKey, month, year: baseYear, techs, groups };
-    }
-
-    function equiposDisponiblesParaRol() {
-        return allTeams().filter(t => equipoActivo(t) && puedeCargarTecnicosEn(t));
-    }
-
-    async function openRolImportModal() {
-        if (!puedeCargarTecnicos()) {
-            return showConfirm('NO PUEDES CARGAR EL ROL EN ESTE EQUIPO.', null);
-        }
-        document.getElementById('rol-import-file').value = '';
-        document.getElementById('rol-import-step1').style.display = 'block';
-        document.getElementById('rol-import-step2').style.display = 'none';
-        document.getElementById('rol-import-footer').style.display = 'none';
-        document.getElementById('rol-import-info').innerHTML = '';
-        document.getElementById('rol-import-groups').innerHTML = '';
-        document.getElementById('rol-import-techs').innerHTML = '';
-        rolImportState = null;
-
-        const teams = equiposDisponiblesParaRol();
-        const target = equipoEnEdicion() || currentTeam;
-        const lastWrap = document.getElementById('rol-import-last-update');
-        lastWrap.innerHTML = '';
-
-        // Cargar última actualización del equipo objetivo
-        if (teams.includes(target)) {
-            try {
-                const snap = await get(ref(db, 'mantenimiento/alisteo/datos/' + sanitizeTeamId(target) + '/rol_mensual'));
-                const data = snap.val();
-                rolImportLastByTeam[target] = data || null;
-                if (data && data.actualizadoTs) {
-                    const d = new Date(data.actualizadoTs);
-                    lastWrap.innerHTML = `Última actualización de rol en <b>${escapeHtml(equipoNombre(target))}</b>: ${d.toLocaleString('es-CL')} por ${escapeHtml(data.actualizadoPor || '-')}`;
-                } else {
-                    lastWrap.innerHTML = `No hay rol cargado aún para <b>${escapeHtml(equipoNombre(target))}</b>.`;
-                }
-            } catch (e) {
-                lastWrap.innerHTML = 'No se pudo consultar la última actualización.';
-            }
-        }
-
-        document.getElementById('rol-import-modal').style.display = 'block';
-    }
-
-    function handleRolFileSelect(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const parsed = parseRolFile(e.target.result, file.name);
-                rolImportState = { parsed, editedNames: {} };
-                buildRolImportPreview();
-            } catch (err) {
-                showConfirm('ERROR AL PROCESAR EL ARCHIVO:\n' + err.message, null);
-            }
-        };
-        reader.onerror = () => showConfirm('ERROR AL LEER EL ARCHIVO.', null);
-        reader.readAsArrayBuffer(file);
-    }
-
-    function buildRolImportPreview() {
-        const { parsed } = rolImportState;
-        const teams = equiposDisponiblesParaRol();
-        const defaultTeam = equipoEnEdicion() || currentTeam;
-
-        document.getElementById('rol-import-step1').style.display = 'none';
-        document.getElementById('rol-import-step2').style.display = 'block';
-        document.getElementById('rol-import-footer').style.display = 'flex';
-
-        document.getElementById('rol-import-info').innerHTML =
-            `MES DETECTADO: <b>${parsed.monthKey}</b> · ${parsed.techs.length} TÉCNICOS · ${parsed.groups.length} GRUPOS`;
-
-        // Grupos
-        const groupsWrap = document.getElementById('rol-import-groups');
-        const teamOptions = teams.map(t => `<option value="${escapeAttr(t)}"${t === defaultTeam ? ' selected' : ''}>${escapeHtml(equipoNombre(t))}</option>`).join('');
-        const showTeamSelect = teams.length > 1;
-        let groupsHtml = '<div class="rol-groups-wrap" style="display:flex; flex-direction:column; gap:6px;">';
-        parsed.groups.forEach((g, i) => {
-            const count = parsed.techs.filter(t => t.grupo === g).length;
-            groupsHtml += `
-                <div style="display:flex; align-items:center; gap:6px; padding:4px 6px; background:var(--bg); border-radius:6px; border:1px solid var(--border);">
-                    <input type="checkbox" id="rol-grp-${i}" value="${escapeAttr(g)}" style="margin:0;">
-                    <label for="rol-grp-${i}" style="flex:1; font-size:11px; font-weight:700; margin:0;">${escapeHtml(g)}</label>
-                    <span style="font-size:10px; color:var(--comment); white-space:nowrap;">${count} técnicos</span>
-                    ${showTeamSelect ? `<select id="rol-grp-team-${i}" style="font-size:10px; min-width:0; width:auto; max-width:100px; height:20px; padding:1px 4px; margin:0;">${teamOptions}</select>` : `<input type="hidden" id="rol-grp-team-${i}" value="${escapeAttr(defaultTeam)}"><span style="font-size:10px; color:var(--comment); white-space:nowrap;">${escapeHtml(equipoNombre(defaultTeam))}</span>`}
-                </div>`;
-        });
-        groupsHtml += '</div>';
-        groupsWrap.innerHTML = groupsHtml;
-
-        // Técnicos
-        const techsWrap = document.getElementById('rol-import-techs');
-        const existingByBp = {};
-        const targetTeam = defaultTeam;
-        const last = rolImportLastByTeam[targetTeam];
-        if (last && last.tecnicos) {
-            Object.values(last.tecnicos).forEach(t => { if (t.bp) existingByBp[t.bp] = t.nombre; });
-        }
-
-        let techsHtml = `<div style="display:flex; gap:8px; margin-bottom:8px; align-items:center;">
-                <input type="text" id="rol-global-search" placeholder="🔍 BUSCAR EN TODOS LOS CAMPOS" style="flex:1; font-size:10px; margin:0;">
-            </div>
-            <div id="rol-import-techs-hint" style="font-size:10px; color:var(--comment); margin-bottom:6px;"></div>
-            <div class="rol-tech-table-wrap">
-            <table style="width:100%; border-collapse: collapse;">
-                <thead style="position:sticky; top:0; background:var(--surface); z-index:1;">
-                    <tr>
-                        <th style="text-align:left; padding:6px; border-bottom:1px solid var(--border);">GRUPO</th>
-                        <th style="text-align:left; padding:6px; border-bottom:1px solid var(--border);">NOMBRE (EDITABLE)</th>
-                        <th style="text-align:left; padding:6px; border-bottom:1px solid var(--border);">BP</th>
-                        <th style="text-align:left; padding:6px; border-bottom:1px solid var(--border);">SKILL</th>
-                        <th style="text-align:left; padding:6px; border-bottom:1px solid var(--border);">NIVEL</th>
-                    </tr>
-                </thead><tbody>`;
-        parsed.techs.forEach(t => {
-            const suggested = existingByBp[t.bp] || t.nombre;
-            rolImportState.editedNames[t.id] = suggested;
-            techsHtml += `
-                <tr class="rol-tech-row" data-grupo="${escapeAttr(t.grupo)}">
-                    <td style="padding:5px; border-bottom:1px solid var(--border); white-space:nowrap;">${escapeHtml(t.grupo)}</td>
-                    <td style="padding:5px; border-bottom:1px solid var(--border);">
-                        <input type="text" class="rol-name-input" data-rol-id="${escapeAttr(t.id)}" id="rol-name-${escapeAttr(t.id)}" value="${escapeAttr(suggested)}" style="width:100%; font-size:10px;">
-                    </td>
-                    <td style="padding:5px; border-bottom:1px solid var(--border);">${escapeHtml(t.bp)}</td>
-                    <td style="padding:5px; border-bottom:1px solid var(--border);">${escapeHtml(t.skill)}</td>
-                    <td style="padding:5px; border-bottom:1px solid var(--border);">${escapeHtml(t.nivel)}</td>
-                </tr>`;
-        });
-        techsHtml += '</tbody></table></div></div>';
-        techsWrap.innerHTML = techsHtml;
-        parsed.techs.forEach(t => {
-            const input = document.getElementById(`rol-name-${t.id}`);
-            if (input) {
-                input.addEventListener('change', function() {
-                    if (rolImportState) rolImportState.editedNames[t.id] = this.value.trim().toUpperCase();
-                });
-            }
-        });
-
-        // Filtrar la tabla de técnicos según grupos seleccionados y búsqueda global
-        function updateRolTechRowsVisibility() {
-            const selectedGroups = new Set();
-            parsed.groups.forEach((g, i) => {
-                const chk = document.getElementById(`rol-grp-${i}`);
-                if (chk && chk.checked) selectedGroups.add(g);
-            });
-            const globalSearch = (document.getElementById('rol-global-search')?.value || '').trim().toUpperCase();
-            let visibleCount = 0;
-            techsWrap.querySelectorAll('.rol-tech-row').forEach(row => {
-                const inSelectedGroup = selectedGroups.has(row.dataset.grupo);
-                const rowText = Array.from(row.querySelectorAll('td')).map(cell => {
-                    const input = cell.querySelector('input');
-                    return (input ? input.value : cell.textContent).toUpperCase();
-                }).join(' ');
-                const matchesSearch = globalSearch && rowText.includes(globalSearch);
-                // Si se escribe en el buscador, busca en todos los técnicos sin importar el grupo;
-                // si no, solo muestra los grupos seleccionados.
-                const show = globalSearch ? matchesSearch : inSelectedGroup;
-                row.style.display = show ? '' : 'none';
-                if (show) visibleCount++;
-            });
-            const hint = document.getElementById('rol-import-techs-hint');
-            if (hint) {
-                if (globalSearch) {
-                    hint.innerHTML = `Mostrando <b>${visibleCount}</b> técnicos que coinciden con "<b>${escapeHtml(globalSearch)}</b>".`;
-                } else {
-                    hint.innerHTML = `Mostrando <b>${visibleCount}</b> de ${parsed.techs.length} técnicos (solo los grupos seleccionados).`;
-                }
-            }
-        }
-
-        parsed.groups.forEach((g, i) => {
-            const chk = document.getElementById(`rol-grp-${i}`);
-            if (chk) chk.addEventListener('change', updateRolTechRowsVisibility);
-        });
-        const searchInput = document.getElementById('rol-global-search');
-        if (searchInput) searchInput.addEventListener('input', updateRolTechRowsVisibility);
-        updateRolTechRowsVisibility();
-    }
-
-    async function saveRolImport() {
-        if (!rolImportState) return;
-        const { parsed } = rolImportState;
-        const teams = equiposDisponiblesParaRol();
-        const groups = parsed.groups;
-        const selected = [];
-        groups.forEach((g, i) => {
-            const chk = document.getElementById(`rol-grp-${i}`);
-            if (chk && chk.checked) {
-                const teamSel = document.getElementById(`rol-grp-team-${i}`);
-                selected.push({ grupo: g, team: teamSel ? teamSel.value : (equipoEnEdicion() || currentTeam) });
-            }
-        });
-        if (!selected.length) return showConfirm('DEBES SELECCIONAR AL MENOS UN GRUPO PARA IMPORTAR.', null);
-
-        const invalid = selected.filter(s => !teams.includes(s.team));
-        if (invalid.length) return showConfirm('NO TIENES PERMISO PARA CARGAR EN ALGUNO DE LOS EQUIPOS SELECCIONADOS.', null);
-
-        // Agrupar por equipo destino
-        const porEquipo = {};
-        selected.forEach(s => {
-            if (!porEquipo[s.team]) porEquipo[s.team] = { grupos: [], techs: [] };
-            porEquipo[s.team].grupos.push(s.grupo);
-        });
-
-        parsed.techs.forEach(t => {
-            const sel = selected.find(s => s.grupo === t.grupo);
-            if (!sel) return;
-            const nombreFinal = String(rolImportState.editedNames[t.id] || t.nombre).trim().toUpperCase();
-            if (!nombreFinal) return;
-            porEquipo[sel.team].techs.push(Object.assign({}, t, { nombreFinal }));
-        });
-
-        const now = Date.now();
-        const email = sessionUser() || '';
-        const updates = [];
-
-        for (const [team, data] of Object.entries(porEquipo)) {
-            const tecnicos = {};
-            const asignaciones = {};
-            const nombres = [];
-
-            data.techs.forEach(t => {
-                tecnicos[t.nombreFinal] = {
-                    nombre: t.nombreFinal,
-                    bp: t.bp,
-                    skill: t.skill,
-                    nivel: t.nivel,
-                    area: t.area,
-                    licencia: t.licencia,
-                    grupo: t.grupo,
-                    grupoRaw: t.grupoRaw,
-                    vencimientos: t.vencimientos
-                };
-                nombres.push(t.nombreFinal);
-                Object.entries(t.asignaciones).forEach(([fecha, items]) => {
-                    if (!asignaciones[fecha]) asignaciones[fecha] = { 'Turno Día': [], 'Turno Tarde': [], 'Turno Noche': [], codigos: {} };
-                    items.forEach(item => {
-                        const turno = item.turno;
-                        if (!asignaciones[fecha][turno].includes(t.nombreFinal)) {
-                            asignaciones[fecha][turno].push(t.nombreFinal);
-                        }
-                        if (item.code) {
-                            asignaciones[fecha].codigos[t.nombreFinal] = item.code;
-                        }
-                    });
-                });
-            });
-
-            const payload = {
-                mes: parsed.monthKey,
-                actualizadoPor: email,
-                actualizadoTs: now,
-                gruposImportados: Array.from(new Set(data.grupos)),
-                tecnicos,
-                asignaciones
-            };
-
-            const teamPath = 'mantenimiento/alisteo/datos/' + sanitizeTeamId(team);
-            updates.push(dbSet(ref(db, teamPath + '/rol_mensual'), payload, 'GUARDAR ROL MENSUAL'));
-
-            // Reemplazar global_techs del equipo con los técnicos del rol importado
-            const reemplazo = Array.from(new Set(nombres)).sort();
-            updates.push(dbSet(ref(db, teamPath + '/global_techs'), reemplazo, 'REEMPLAZAR BASE GLOBAL'));
-        }
-
-        try {
-            await Promise.all(updates);
-            closeModal('rol-import-modal');
-            showToast('✅ ROL MENSUAL GUARDADO CORRECTAMENTE');
-        } catch (e) {
-            console.error('SAVE ROL ERROR', e);
-            const code = e && e.code ? e.code : '';
-            const msg = e && e.message ? e.message : String(e);
-            showConfirm('ERROR AL GUARDAR EL ROL.\n' + (code ? code + ': ' : '') + msg, null);
+            console.error('[loadEquipoSheetTechs] error:', e);
         }
     }
 
+    // ─── ROL EN VIVO DESDE GOOGLE SHEET ───────────────────────────────────
     async function syncShiftWithRol() {
         if (checkLock()) return;
         const team = equipoEnEdicion() || currentTeam;
@@ -8753,46 +8796,79 @@
         if (String(viewingDate) < String(getLogicalTodayDate())) {
             return showConfirm('NO SE PUEDE SINCRONIZAR UN TURNO PASADO.', null);
         }
+        const btn = document.getElementById('btn-sync-rol');
+        const originalHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.innerHTML = '<span class="btn-ico">⏳</span><span class="btn-lbl">SINCRONIZANDO...</span>';
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+        }
         try {
-            const snap = await get(ref(db, 'mantenimiento/alisteo/datos/' + sanitizeTeamId(team) + '/rol_mensual'));
-            const rol = snap.val();
-            if (!rol) return showConfirm('NO HAY ROL MENSUAL CARGADO PARA ESTE EQUIPO.', null);
-            if (rol.mes !== viewingDate.slice(0, 7)) return showConfirm('EL ROL CARGADO ES DE OTRO MES (' + rol.mes + '). NO COINCIDE CON EL DÍA QUE ESTÁS VIENDO.', null);
-            const asig = (rol.asignaciones || {})[viewingDate];
-            if (!asig) return showConfirm('NO HAY ASIGNACIONES EN EL ROL PARA ESTE DÍA.', null);
-            const delRol = asig[activeTurno] || [];
-            if (!delRol.length) return showConfirm('EL ROL NO TIENE TÉCNICOS ASIGNADOS A ESTE TURNO.', null);
+            const data = await fetchRolSheetForDate(viewingDate, activeTurno);
+            if (!data.length) {
+                showConfirm('EL ROL NO TIENE TÉCNICOS ASIGNADOS A ESTE TURNO.', null);
+                return;
+            }
+
+            const gruposEquipo = (configGruposPorEquipo[sanitizeTeamId(team)] || []).map(g => String(g).trim().toUpperCase()).filter(Boolean);
+            if (!gruposEquipo.length) {
+                showConfirm('NO HAY GRUPOS CONFIGURADOS PARA ESTE EQUIPO. CONFIGÚRALOS EN EL PANEL DE ADMINISTRACIÓN.', null);
+                return;
+            }
 
             const added = [];
             const ignorados = [];
-            delRol.forEach(nombre => {
-                if (!globalTechs.includes(nombre)) {
-                    ignorados.push(nombre);
+            data.forEach(item => {
+                const grupo = String(item.grupo || '').trim().toUpperCase();
+                if (!gruposEquipo.some(g => g === grupo)) {
+                    ignorados.push(item.nombre || item.bp || 'SIN NOMBRE');
                     return;
                 }
-                if (!shiftTechs.includes(nombre)) {
-                    shiftTechs.push(nombre);
-                    added.push(nombre);
+                const bp = String(item.bp || '').trim().toUpperCase();
+                const nombreSheet = String(item.nombre || '').trim().toUpperCase();
+                const nombre = (bp && libreriaTecnicos[bp] && libreriaTecnicos[bp].nombre)
+                    ? libreriaTecnicos[bp].nombre
+                    : nombreSheet;
+                if (!nombre) return;
+
+                const idxByName = findTechIndexByName(nombre);
+                const idxByBp = bp ? shiftTechs.findIndex(t => techBp(t) === bp) : -1;
+
+                if (idxByName !== -1) {
+                    // Ya existe con ese nombre: asegurar BP/código actualizado
+                    if (bp && !techBp(shiftTechs[idxByName])) shiftTechs[idxByName].bp = bp;
+                    if (item.codigo) shiftTechs[idxByName].codigo = item.codigo;
+                    return;
                 }
+                if (idxByBp !== -1) {
+                    // Mismo BP, nombre distinto (ej: renombrado en librería): actualizar
+                    shiftTechs[idxByBp].nombre = nombre;
+                    if (item.codigo) shiftTechs[idxByBp].codigo = item.codigo;
+                    added.push(nombre);
+                    return;
+                }
+                shiftTechs.push({ nombre, bp: bp || null, codigo: item.codigo || null });
+                added.push(nombre);
             });
-            if (ignorados.length) {
-                console.warn('syncShiftWithRol: técnicos del rol no están en la base global:', ignorados);
-            }
-            // Agregar técnicos manuales (empresas terceras, etc.) cuyo turno coincida
-            // con el turno que se está sincronizando (o "Todos").
+            // Guardar cache del mes para detalles
+            rolSheetCache = data;
+            rolSheetCacheMonth = viewingDate.slice(0, 7);
+
+            // Agregar técnicos manuales cuyo turno coincida
             (globalTechs || []).forEach(nombre => {
                 const t = globalTechTurnos && globalTechTurnos[sanitizeKey(nombre)];
                 if (t !== 'Todos' && t !== activeTurno) return;
-                if (!globalTechs.includes(nombre)) return;
-                if (shiftTechs.includes(nombre)) return;
-                shiftTechs.push(nombre);
-                added.push(nombre);
+                if (findTechIndexByName(nombre) === -1) {
+                    shiftTechs.push({ nombre, bp: null, codigo: null });
+                    added.push(nombre);
+                }
             });
             if (!added.length) {
-                return showToast('ℹ️ TODOS LOS TÉCNICOS DEL ROL YA ESTÁN EN EL TURNO' +
-                    (ignorados.length ? ` · ${ignorados.length} NO ESTÁN EN LA BASE GLOBAL` : ''));
+                showToast('ℹ️ TODOS LOS TÉCNICOS DEL ROL YA ESTÁN EN EL TURNO' +
+                    (ignorados.length ? ` · ${ignorados.length} IGNORADOS POR GRUPO` : ''));
+                return;
             }
-            shiftTechs.sort();
+            shiftTechs.sort((a, b) => techNombre(a).localeCompare(techNombre(b)));
             const techsPath = getBasePath() + '/techs';
             await dbSet(ref(db, techsPath), shiftTechs, 'SINCRONIZAR TÉCNICOS CON ROL');
             showToast(`✅ SE AGREGARON ${added.length} TÉCNICO(S) (ROL + MANUALES)`);
@@ -8801,8 +8877,13 @@
             const code = e && e.code ? e.code : '';
             const msg = e && e.message ? e.message : String(e);
             const team = equipoEnEdicion() || currentTeam;
-            const path = 'mantenimiento/alisteo/datos/' + sanitizeTeamId(team) + '/rol_mensual';
-            showConfirm('ERROR AL SINCRONIZAR CON EL ROL.\n' + (code ? code + ': ' : '') + msg + '\n\nEquipo: ' + equipoNombre(team) + '\nRuta: ' + path, null);
+            showConfirm('ERROR AL SINCRONIZAR CON EL ROL.\n' + (code ? code + ': ' : '') + msg + '\n\nEquipo: ' + equipoNombre(team), null);
+        } finally {
+            if (btn) {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+                btn.style.opacity = '';
+            }
         }
     }
 
@@ -8814,22 +8895,32 @@
         btn.style.display = visible ? 'inline-flex' : 'none';
     }
 
-    function addTech() {
+    async function addTech() {
         if(checkLock()) return;
         if (!puedeCargarTecnicos()) return showConfirm('NO PUEDES AGREGAR TÉCNICOS AL TURNO EN ESTE EQUIPO.', null);
         const input = document.getElementById('in-new-tech');
         const name = input.value.trim().toUpperCase();
         if (!name) return;
-        if (shiftTechs.includes(name)) return showConfirm("ESTE TÉCNICO YA ESTÁ EN EL TURNO.", null);
-        shiftTechs.push(name);
-        shiftTechs.sort(); input.value = '';
+        if (findTechIndexByName(name) !== -1) return showConfirm("ESTE TÉCNICO YA ESTÁ EN EL TURNO.", null);
+
+        await ensureAddTechSheetCache(viewingDate.slice(0, 7));
+        const available = getAvailableTechs();
+        const match = available.find(t => t.nombre === name) || null;
+        if (match) {
+            shiftTechs.push({ nombre: match.nombre, bp: match.bp, codigo: match.codigo });
+        } else {
+            shiftTechs.push({ nombre: name, bp: null, codigo: null });
+        }
+        shiftTechs.sort((a, b) => techNombre(a).localeCompare(techNombre(b)));
+        input.value = '';
         saveTechs();
     }
 
     function removeTech(index) {
         if(checkLock()) return;
         if (!puedeCargarTecnicos()) return showConfirm('NO PUEDES QUITAR TÉCNICOS DEL TURNO EN ESTE EQUIPO.', null);
-        showConfirm(`¿CONFIRMAS ELIMINAR A ${shiftTechs[index]} DEL TURNO?`, () => {
+        const nombre = techNombre(shiftTechs[index]);
+        showConfirm(`¿CONFIRMAS ELIMINAR A ${nombre} DEL TURNO?`, () => {
             shiftTechs.splice(index, 1); saveTechs();
         });
     }
@@ -8912,23 +9003,6 @@
         return !getAssignedTechsSet().has(tech);
     }
 
-    async function loadShiftRolCodes() {
-        currentRolCodes = null;
-        const team = equipoEnEdicion() || currentTeam;
-        if (!team) return;
-        try {
-            const snap = await get(ref(db, 'mantenimiento/alisteo/datos/' + sanitizeTeamId(team) + '/rol_mensual'));
-            if (snap.exists()) {
-                const rol = snap.val();
-                const asig = (rol.asignaciones || {})[viewingDate];
-                if (asig && asig.codigos) currentRolCodes = asig.codigos;
-            }
-        } catch (e) {
-            console.error('ERROR CARGANDO CÓDIGOS DEL ROL:', e);
-        }
-        renderTechPills();
-    }
-
     function setCodeFilter(code) {
         activeCodeFilter = (activeCodeFilter === code) ? '' : code;
         renderTechPills();
@@ -8949,9 +9023,8 @@
         countPill.innerHTML = `<span class="tech-name">👥 ${shiftTechs.length}</span>`;
         container.appendChild(countPill);
 
-        // Pastillas de filtro por código de turno (si hay rol cargado)
-        const codeMap = currentRolCodes || {};
-        const techCodes = shiftTechs.map(tech => codeMap[tech] || 'SIN CÓDIGO');
+        // Pastillas de filtro por código de turno
+        const techCodes = shiftTechs.map(t => techCodigo(t) || 'SIN CÓDIGO');
         const codeCounts = {};
         techCodes.forEach(c => { codeCounts[c] = (codeCounts[c] || 0) + 1; });
         const distinctCodes = Object.keys(codeCounts).sort();
@@ -8975,18 +9048,21 @@
             .filter(item => !activeCodeFilter || item.code === activeCodeFilter);
 
         filtered.forEach(({ tech, i }) => {
-            const idle = !assigned.has(tech);
+            const nombre = techNombre(tech);
+            const code = techCodigo(tech);
+            const bp = techBp(tech);
+            const idle = !assigned.has(nombre);
             const pill = document.createElement('div'); pill.className = 'tech-pill' + (idle ? ' tech-idle' : '');
-            if (idle) pill.title = `${tech} · SIN TAREAS ASIGNADAS EN ESTE TURNO`;
-            const code = codeMap[tech];
+            if (idle) pill.title = `${nombre} · SIN TAREAS ASIGNADAS EN ESTE TURNO`;
             if (code) pill.title = (pill.title ? pill.title + ' · ' : '') + `CÓDIGO ROL: ${code}`;
+            if (bp) pill.title = (pill.title ? pill.title + ' · ' : '') + `BP: ${bp}`;
 
             const nameSpan = document.createElement('span');
             nameSpan.className = 'tech-name';
-            nameSpan.textContent = tech;
+            nameSpan.textContent = nombre;
             nameSpan.style.cursor = 'pointer';
             nameSpan.title = 'Ver detalles del técnico';
-            nameSpan.addEventListener('click', () => showTechDetailsFromPanel(tech));
+            nameSpan.addEventListener('click', () => showTechDetailsFromPanel(nombre));
 
             const removeSpan = document.createElement('span');
             removeSpan.className = 'tech-remove';
@@ -11205,22 +11281,24 @@
     // él). Sin ese argumento sigue usando los del turno que se está viendo.
     function buildTechGrid(containerId, selectedTechsString = "", lista) {
         const container = document.getElementById(containerId); container.innerHTML = '';
-        const currentTechs = selectedTechsString ? selectedTechsString.split(' - ') : [];
-        const opciones = lista || shiftTechs;
+        const currentTechs = selectedTechsString ? selectedTechsString.split(' - ').map(n => n.trim().toUpperCase()) : [];
+        const opcionesRaw = lista || shiftTechs;
+        const opciones = opcionesRaw.map(t => typeof t === 'string' ? { nombre: t } : t);
         if (opciones.length === 0) {
             container.innerHTML = '<div style="font-size:10px; color:var(--comment); padding:8px;">'
                 + (lista ? 'ESE TURNO NO TIENE TÉCNICOS TODAVÍA' : 'NO HAY TÉCNICOS AGREGADOS AL TURNO') + '</div>';
         } else {
             opciones.forEach(tech => {
-                const isChecked = currentTechs.includes(tech) ? "checked" : "";
+                const nombre = techNombre(tech);
+                const isChecked = currentTechs.includes(nombre) ? "checked" : "";
                 // "libre" solo se puede saber del turno que está en pantalla
-                const idle = lista ? false : isTechIdle(tech);
+                const idle = lista ? false : isTechIdle(nombre);
                 const idleClass = idle ? ' tech-idle' : '';
                 const idleTitle = idle ? ' title="SIN TAREAS EN ESTE TURNO · LIBRE"' : '';
                 container.innerHTML += `
                     <label class="tech-checkbox-label${idleClass}"${idleTitle}>
-                        <input type="checkbox" class="${containerId}-cb" value="${escapeAttr(tech)}" ${isChecked}>
-                        <span>${escapeHtml(tech)}</span>
+                        <input type="checkbox" class="${containerId}-cb" value="${escapeAttr(nombre)}" ${isChecked}>
+                        <span>${escapeHtml(nombre)}</span>
                     </label>`;
             });
         }
@@ -11998,7 +12076,9 @@
         finalizeTime, onTimeKeyEnter,
         openManageTechsModal, showGlobalTechDetails, startEditGlobalTechName, saveGlobalTechNameEdit, removeGlobalTech,
         openAddGlobalTechModal, saveManualGlobalTech, guardarTurnoGlobalTech, showTechDetailsFromPanel,
-        openRolImportModal, handleRolFileSelect, saveRolImport, syncShiftWithRol,
+        syncShiftWithRol, startEditSheetTechName, saveSheetTechNameEdit,
+        guardarConfigRolVivo, cargarGruposDesdeSheet, diagnosticarSheetMesActual, ensureAddTechDatalist,
+        adminShowTab, adminCambiarMesRol, renderAdminRolMesSelect, adminCambiarEquipoRolPanel, renderAdminRolEquipoSelect,
         openPredefModal, createAndAddPredef, addExistingPredef, removePredefTask,
         // carga rápida de work package (.xlsx / .csv)
         wpArchivoElegido, wpMarcarTodas, wpAvisoImport, wpCerrarImport, wpVolverAImport,
