@@ -136,14 +136,50 @@
 
         .container { max-width: 1000px; margin: 0 auto; background: var(--surface); padding: 25px; border-radius: 24px 0 24px 0; box-shadow: 0 4px 12px color-mix(in srgb, var(--black) 5%, transparent); }
         /* Botón flotante para activar botones en móvil (evita toques accidentales) */
-        .fab-unlock { display: none; position: fixed; bottom: 18px; left: 18px; z-index: 1300; width: 40px; height: 40px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent); background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: var(--primary); font-size: 16px; cursor: pointer; box-shadow: 0 2px 10px color-mix(in srgb, var(--black) 12%, transparent); align-items: center; justify-content: center; transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease; }
-        .fab-unlock:hover { transform: scale(1.06); box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 25%, transparent); }
-        .fab-unlock.unlocked { background: color-mix(in srgb, var(--success) 90%, transparent); color: var(--surface); border-color: color-mix(in srgb, var(--success) 40%, transparent); }
-        /* Vista limpia: oculta botones y controles para una lectura sin distracciones */
+        .fab-unlock {
+            display: none; position: fixed; bottom: 20px; left: 20px; z-index: 1300;
+            width: 50px; height: 50px; border-radius: 50%; padding: 0;
+            border: none;
+            background: transparent;
+            color: var(--primary); cursor: pointer;
+            align-items: center; justify-content: center;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+        .fab-unlock:hover { transform: scale(1.08); }
+        .fab-unlock:active { transform: scale(0.94); }
+        .fab-unlock.unlocked {
+            background: transparent;
+            color: var(--success);
+        }
+        .fab-unlock .fab-icon {
+            position: absolute; top: 50%; left: 50%;
+            width: 22px; height: 22px;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .fab-unlock .fab-icon-locked { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .fab-unlock .fab-icon-unlocked { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        .fab-unlock.unlocked .fab-icon-locked { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        .fab-unlock.unlocked .fab-icon-unlocked { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        .fab-unlock .fab-ring {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            transform: rotate(-90deg); pointer-events: none;
+        }
+        .fab-unlock .fab-ring circle { fill: none; stroke-width: 2.5; }
+        .fab-unlock .fab-ring-bg { stroke: var(--border); }
+        .fab-unlock.unlocked .fab-ring-bg { stroke: color-mix(in srgb, var(--success) 25%, var(--border)); }
+        .fab-unlock .fab-ring-progress {
+            stroke: var(--success);
+            stroke-dasharray: 138.23;
+            stroke-dashoffset: 138.23;
+            transition: stroke-dashoffset 0.1s linear;
+        }
+        .fab-unlock.unlocked .fab-ring-progress { stroke: var(--success); }
         body.clean-view .leader-only { display: none !important; }
         body.clean-view .action-bar { display: none !important; }
         body.clean-view .status-toggle { display: none !important; }
         body.clean-view .view-controls { display: none !important; }
+        body.clean-view .fab-unlock { display: none !important; }
 
         /* Barra superior general */
         .top-bar {
@@ -154,6 +190,20 @@
             border-radius: 14px 0 14px 0; align-items: center; position: relative;
             border: 1px solid var(--border-soft);
             box-shadow: 0 2px 8px color-mix(in srgb, var(--black) 4%, transparent);
+            transition: background 0.35s ease, border-color 0.35s ease, color 0.35s ease;
+        }
+        /* Temas segun turno - muy sutiles para no romper el estilo general */
+        .top-bar.turno-dia {
+            background: linear-gradient(135deg, #FFFFFF 0%, #EDF5FF 40%, #D4E8F7 100%);
+            border-color: #AECCE8;
+        }
+        .top-bar.turno-tarde {
+            background: linear-gradient(135deg, #FFFFFF 0%, #FFF5F2 40%, #FFE8E0 100%);
+            border-color: #F0C4B8;
+        }
+        .top-bar.turno-noche {
+            background: linear-gradient(135deg, #FFFFFF 0%, #D8DCEE 40%, #B8C0D9 100%);
+            border-color: #9AA5C4;
         }
 
         .top-bar-left { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
@@ -755,14 +805,7 @@
         }
         
         .task-item:last-child { border-bottom: none; border-radius: 0 0 20px 0; }
-        .task-item:nth-child(even) { background-color: var(--light-gray); }
-
-        .task-item.alerta-tl { background-color: var(--surface-red); border-left: 4px solid var(--red); }
-        .task-item.alerta-tech { background-color: var(--surface-orange); border-left: 4px solid var(--orange-alert); }
-
-        .atencion-badge { font-weight: 800; font-size: 0.76em; margin-left: 5px; padding: 1px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
-        .alerta-tl { color: var(--surface); background: var(--red); border: 1px solid var(--red-dark); }
-        .alerta-tech { color: var(--surface); background: var(--orange-alert); border: 1px solid var(--orange-alert-dark); }
+        .task-item:nth-child(even) { background-color: #F5F8FB; }
 
         .status-toggle {
             width: 19px; height: 19px; min-width: 19px; min-height: 19px;
@@ -815,6 +858,7 @@
         .status-badge.otro { color: #455A64; background: #ECEFF1; border-color: #B0BEC5; }
 
         .status-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+        .status-grid-separator { border: none; border-top: 1px solid var(--border); margin: 4px 0 12px 0; }
         .status-btn {
             width: 100%; height: auto; min-height: 36px; padding: 8px 6px;
             border: 1px solid var(--border); border-radius: var(--button-radius);
@@ -837,14 +881,22 @@
         .status-otro-check { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 10px; font-weight: 700; color: var(--primary); cursor: pointer; }
         .status-otro-check input { width: 14px; height: 14px; accent-color: var(--primary); cursor: pointer; }
 
-        /* Fondo suave en toda la tarea según su estado de avance */
-        .task-status-start { background: linear-gradient(90deg, #E0F7FA 0%, #E0F7FA 6px, transparent 6px); }
-        .task-status-pausado { background: linear-gradient(90deg, #FFF3E0 0%, #FFF3E0 6px, transparent 6px); }
-        .task-status-diferido { background: linear-gradient(90deg, #FBE9E7 0%, #FBE9E7 6px, transparent 6px); }
-        .task-status-evaluado { background: linear-gradient(90deg, #F3E5F5 0%, #F3E5F5 6px, transparent 6px); }
-        .task-status-avance { background: linear-gradient(90deg, #E3F2FD 0%, #E3F2FD 6px, transparent 6px); }
-        .task-status-otro { background: linear-gradient(90deg, #ECEFF1 0%, #ECEFF1 6px, transparent 6px); }
-        .task-item.completed { opacity: 0.6 !important; background: transparent !important; }
+        /* Estados de avance: solo una linea lateral de color, sin fondo */
+        .task-item.task-status-start { border-left: 4px solid #0E7C86; }
+        .task-status-pausado { border-left: 4px solid #F57C00; }
+        .task-status-diferido { border-left: 4px solid #E65100; }
+        .task-status-evaluado { border-left: 4px solid #6A1B9A; }
+        .task-status-avance { border-left: 4px solid #1565C0; }
+        .task-status-otro { border-left: 4px solid #455A64; }
+        .task-item.completed { opacity: 0.6 !important; background: transparent !important; border-left: none; }
+
+        /* Alertas: solo una linea lateral y un fondo casi imperceptible (definidas despues para prevalecer sobre estados) */
+        .task-item.alerta-tl { background-color: #FFF7F7 !important; border-left: 4px solid var(--red); }
+        .task-item.alerta-tech { background-color: #FFFBF5 !important; border-left: 4px solid var(--orange-alert); }
+
+        .atencion-badge { font-weight: 800; font-size: 0.76em; margin-left: 5px; padding: 1px 5px; border-radius: 4px; display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+        .alerta-tl { color: var(--red-dark); background: #FFF5F5; border: 1px solid var(--red); }
+        .alerta-tech { color: var(--orange-alert-dark); background: #FFFAF5; border: 1px solid var(--orange-alert); }
 
         .action-bar { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
 
@@ -1726,11 +1778,17 @@
             
             .task-container { padding-left: 0 !important; }
             .task-item { padding: 0.28em 0.5em !important; position: static !important; border-bottom: 1px solid var(--border); page-break-inside: avoid; }
-            .task-item:nth-child(even) { background-color: var(--light-gray); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .task-item:nth-child(even) { background-color: #F5F8FB; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .task-item.completed:nth-child(even) { background-color: var(--surface-alt); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .task-item.completed:nth-child(odd) { background-color: var(--surface); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .task-item.alerta-tl { border-left: 3px solid var(--red) !important; background-color: var(--surface-red) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .task-item.alerta-tech { border-left: 3px solid var(--orange-alert) !important; background-color: var(--surface-orange) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .task-item.alerta-tl { border-left: 3px solid var(--red) !important; background-color: #FFF7F7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .task-item.alerta-tech { border-left: 3px solid var(--orange-alert) !important; background-color: #FFFBF5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .task-item.task-status-start { border-left: 3px solid #0E7C86 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .task-status-pausado { border-left: 3px solid #F57C00 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .task-status-diferido { border-left: 3px solid #E65100 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .task-status-evaluado { border-left: 3px solid #6A1B9A !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .task-status-avance { border-left: 3px solid #1565C0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .task-status-otro { border-left: 3px solid #455A64 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             
             .task-item.completed .task-desc,
             .task-item.completed .task-techs,
@@ -2167,7 +2225,20 @@
     <div class="conn-spinner-ring"></div>
 </div>
 
-<button type="button" id="fab-unlock" class="fab-unlock no-print" onclick="toggleMobileUnlock()" aria-label="Activar botones">🔒</button>
+<button type="button" id="fab-unlock" class="fab-unlock no-print" onclick="toggleMobileUnlock()" aria-label="Activar botones">
+    <svg class="fab-ring" viewBox="0 0 48 48">
+        <circle class="fab-ring-bg" cx="24" cy="24" r="22"></circle>
+        <circle class="fab-ring-progress" cx="24" cy="24" r="22"></circle>
+    </svg>
+    <svg class="fab-icon fab-icon-locked" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="5" y="11" width="14" height="10" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <svg class="fab-icon fab-icon-unlocked" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="5" y="11" width="14" height="10" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M7 11V7a5 5 0 0 1 9.9-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+</button>
 
 <div id="confirm-modal" class="modal">
     <div class="modal-content" style="max-width: 380px;">
@@ -2199,8 +2270,10 @@
     <div class="modal-content" style="max-width: 420px;">
         <div class="modal-header">📊 ESTADO DE LA TAREA</div>
         <div style="font-size: 10px; color: var(--comment); margin-bottom: 10px; line-height: 1.4;">
-            Selecciona el estado que refleja dónde está la tarea. Todo el equipo lo verá junto al título. "CERRADO" marca la tarea como terminada.
+            Selecciona el estado que refleja dónde está la tarea. Todo el equipo lo verá junto al título. "FINISH" marca la tarea como terminada.
         </div>
+        <div class="status-grid" id="status-grid-main"></div>
+        <hr class="status-grid-separator">
         <div class="status-grid" id="status-grid"></div>
         <div id="status-otro-wrap">
             <input type="text" id="status-otro-input" maxlength="30" placeholder="ESCRIBE EL ESTADO (MÁX. 30 CARACTERES)" autocomplete="off" oninput="this.value = this.value.toUpperCase()" onkeypress="if(event.key === 'Enter') saveTaskStatus()">
@@ -2221,11 +2294,11 @@
     <div class="modal-content">
         <div class="modal-header">⚠️ ADMINISTRAR TURNO</div>
         <div style="font-size: 11px; margin-bottom: 15px; color: var(--primary);">
-            Puedes borrar por completo el turno actual (aviones, técnicos, y líder) o trasladar toda la programación a otra fecha y turno.
+            Puedes borrar por completo el turno actual, trasladar la programación a otra fecha/turno, intercambiar con otro turno o copiarlo sin borrar el origen.
         </div>
 
         <div style="border: 1px solid var(--border); padding: 10px; border-radius: 6px; margin-bottom: 15px;">
-            <strong style="font-size: 10px; color: var(--primary);">TRASLADAR PROGRAMACIÓN A:</strong>
+            <strong style="font-size: 10px; color: var(--primary);">FECHA / TURNO DESTINO:</strong>
             <div class="modal-row" style="margin-top: 8px;">
                 <input type="date" id="manage-shift-date" style="font-weight: bold; border: 2px solid var(--primary-light); color: var(--primary-light);">
                 <select id="manage-shift-turno" style="font-weight: bold; border: 2px solid var(--primary-light); color: var(--primary-light); width: auto;">
@@ -2234,7 +2307,11 @@
                     <option value="Turno Noche">NOCHE</option>
                 </select>
             </div>
-            <button class="btn-leader" style="width: 100%; margin-top: 8px;" onclick="moveShift()">➡️ TRASLADAR TODO</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 8px;">
+                <button class="btn-leader" style="font-size: 10px; padding: 8px 4px;" onclick="moveShift()" title="Mueve todo al destino y borra el origen">➡️ TRASLADAR</button>
+                <button class="btn-leader" style="font-size: 10px; padding: 8px 4px; background: var(--accent);" onclick="swapShift()" title="Intercambia el contenido entre origen y destino">🔄 INTERCAMBIAR</button>
+                <button class="btn-leader" style="font-size: 10px; padding: 8px 4px; background: var(--success);" onclick="copyShift()" title="Copia todo al destino sin borrar el origen">📋 COPIAR</button>
+            </div>
         </div>
 
         <div style="border: 1px solid var(--danger); padding: 10px; border-radius: 6px; background-color: var(--surface-red-soft);">
@@ -4304,6 +4381,7 @@
     function techNombre(t) { return (t && t.nombre) || (typeof t === 'string' ? t : ''); }
     function techBp(t) { return (t && t.bp) || null; }
     function techCodigo(t) { return (t && t.codigo) || null; }
+    function normalizeBp(bp) { return String(bp || '').trim().toUpperCase().replace(/\.0$/, ''); }
     function normalizeTechs(arr) {
       return (arr || []).map(t => {
         if (t && typeof t === 'object' && t.nombre) return { nombre: t.nombre, bp: t.bp || null, codigo: t.codigo || null };
@@ -4344,6 +4422,33 @@
         if (data && data.error) throw new Error(data.error);
         return Array.isArray(data) ? data : [];
     }
+
+    // Cache de codigos BP -> codigo para la fecha/turno actual (para mostrar pastillas 9H14, etc.)
+    let codigosTurnoCache = { date: '', turno: '', map: {}, ts: 0 };
+    const CODIGOS_TURNO_CACHE_TTL_MS = 5 * 60 * 1000;
+
+    async function getCodigosTurnoMap() {
+        const date = viewingDate;
+        const turno = activeTurno;
+        const now = Date.now();
+        if (codigosTurnoCache.date === date && codigosTurnoCache.turno === turno && (now - codigosTurnoCache.ts) < CODIGOS_TURNO_CACHE_TTL_MS) {
+            return codigosTurnoCache.map;
+        }
+        const map = {};
+        try {
+            const data = await fetchRolSheetForDate(date, turno);
+            (data || []).forEach(t => {
+                const bp = normalizeBp(t.bp);
+                const codigo = String(t.codigo || '').trim();
+                if (bp && codigo) map[bp] = codigo;
+            });
+        } catch (e) {
+            console.warn('No se pudieron cargar códigos de turno:', e);
+        }
+        codigosTurnoCache = { date, turno, map, ts: now };
+        return map;
+    }
+
     async function fetchRolSheetAllTechs(monthKey) {
         const url = getRolSheetUrlForMonth(monthKey);
         if (!url) throw new Error('NO HAY URL CONFIGURADA PARA EL MES ' + monthKey);
@@ -4481,12 +4586,12 @@
     // Estados de avance de una tarea. El badge se muestra al principio del título.
     // "cerrado" equivale a done=true; el resto deja la tarea abierta con un estado.
     const TASK_STATUS = {
-        start:    { label: 'START',          colorClass: 'start',    done: false }, // solo indica inicio, no completa
-        cerrado:  { label: 'CERRADO',        colorClass: 'cerrado',  done: true  },
-        pausado:  { label: 'PAUSADO',        colorClass: 'pausado',  done: true  },
+        start:    { label: 'IN WORK', modalLabel: 'START',      colorClass: 'start',    done: false }, // solo indica inicio, no completa
+        cerrado:  { label: 'COMPLETE', modalLabel: 'FINISH',    colorClass: 'cerrado',  done: true  },
+        pausado:  { label: 'JOB STOP', modalLabel: 'JOB STOP',  colorClass: 'pausado',  done: true  },
         diferido: { label: 'DIFERIDO',       colorClass: 'diferido', done: true  },
-        evaluado: { label: 'EVALUADO',       colorClass: 'evaluado', done: true  },
-        avance:   { label: 'AVANCE PARCIAL', colorClass: 'avance',   done: true  },
+        evaluado: { label: 'EVALUADO',       colorClass: 'evaluado', done: true, doneConfigurable: true },
+        avance:   { label: 'AVANCE PARCIAL', colorClass: 'avance',   done: true, doneConfigurable: true },
         otro:     { label: 'OTRO',           colorClass: 'otro',     done: false }  // se define con el checkbox del modal
     };
     const OTRO_MAX_LEN = 30;
@@ -4664,21 +4769,40 @@
     function isMobileView() {
         return window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches;
     }
+    const FAB_RING_CIRCUMFERENCE = 138.23;
+    function setFabRingProgress(offset) {
+        const ring = document.querySelector('#fab-unlock .fab-ring-progress');
+        if (!ring) return;
+        ring.style.transition = offset === FAB_RING_CIRCUMFERENCE ? 'none' : 'stroke-dashoffset 0.1s linear';
+        ring.style.strokeDashoffset = offset;
+    }
+    function animateFabRing(duration) {
+        const ring = document.querySelector('#fab-unlock .fab-ring-progress');
+        if (!ring) return;
+        ring.style.transition = 'none';
+        ring.style.strokeDashoffset = FAB_RING_CIRCUMFERENCE;
+        ring.getBoundingClientRect();
+        requestAnimationFrame(() => {
+            ring.style.transition = `stroke-dashoffset ${duration}ms linear`;
+            ring.style.strokeDashoffset = '0';
+        });
+    }
     function unlockMobileActions() {
         mobileUnlocked = true;
         document.body.classList.remove('mobile-locked');
         const fab = document.getElementById('fab-unlock');
-        if (fab) { fab.textContent = '🔓'; fab.classList.add('unlocked'); }
+        if (fab) fab.classList.add('unlocked');
         clearTimeout(mobileUnlockTimer);
         mobileUnlockTimer = setTimeout(lockMobileActions, 10000);
-        showToast('BOTONES ACTIVADOS (10s)');
+        animateFabRing(10000);
     }
     function lockMobileActions() {
         mobileUnlocked = false;
         document.body.classList.add('mobile-locked');
         const fab = document.getElementById('fab-unlock');
-        if (fab) { fab.textContent = '🔒'; fab.classList.remove('unlocked'); }
+        if (fab) fab.classList.remove('unlocked');
         clearTimeout(mobileUnlockTimer);
+        setFabRingProgress(FAB_RING_CIRCUMFERENCE);
     }
     function toggleMobileUnlock() {
         if (mobileUnlocked) lockMobileActions(); else unlockMobileActions();
@@ -6998,12 +7122,22 @@
             : '✖ SACADO DE ' + quitar.map(t => String(equipoNombre(t)).toUpperCase()).join(', ') + ': ' + key.toUpperCase());
     }
 
+    function updateTopBarTheme() {
+        const bar = document.querySelector('.top-bar');
+        if (!bar) return;
+        bar.classList.remove('turno-dia', 'turno-tarde', 'turno-noche');
+        if (activeTurno === 'Turno Tarde') bar.classList.add('turno-tarde');
+        else if (activeTurno === 'Turno Noche') bar.classList.add('turno-noche');
+        else bar.classList.add('turno-dia');
+    }
+
     function changeTurno() {
         activeTurno = document.getElementById('global-turno-select').value;
         localStorage.setItem('latam_active_turno', activeTurno);
         activeCodeFilter = '';
         // el turno decide cuál es el "hoy" (de noche todavía es el día anterior)
         updateViewActionsUI();
+        updateTopBarTheme();
         listenToTurno(activeTurno);
     }
 
@@ -7134,6 +7268,7 @@
         updateTechFilterDropdown();
         actualizarTiraEquipos();
         updateRolSyncButton();
+        updateTopBarTheme();
     }
     // Llega un dato de uno de los turnos. En la vista de un equipo, el de pantalla
     // se copia tal cual a las variables de siempre (ahí viven todas las escrituras);
@@ -8235,18 +8370,42 @@
     // pisaba lo que otro habia guardado en el instante anterior.
     // OJO: en la base los aviones y las tareas se guardan por su POSICION en la
     // lista, no por su 'id'. Hay que buscar el indice antes de armar la ruta.
-    function guardarMarcaTarea(aId, tId, cambios) {
+    async function guardarMarcaTarea(aId, tId, cambios) {
         if (checkLock()) return Promise.resolve();
         asegurarEquipoLigado();
+
+        if (!googleUser()) {
+            showConfirm('🔒 DEBES INICIAR SESIÓN CON GOOGLE PARA PONER ALERTAS.', null);
+            return Promise.resolve();
+        }
+
         const ia = (avionesData || []).findIndex(a => a.id == aId);
         if (ia < 0) return Promise.resolve();
         const avion = (avionesData || [])[ia];
         const it = (avion.tareas || []).findIndex(t => t.id == tId);
         if (it < 0) return Promise.resolve();
+
+        // Verificar el estado REAL del turno en Firebase antes de escribir.
+        // shiftState puede quedar desincronizado, y las reglas bloquean aviones si esta cerrado.
+        try {
+            const headerSnap = await get(ref(db, `${getBasePath()}/header`));
+            const header = headerSnap.val() || {};
+            if (header.estado === 'cerrado') {
+                const cerradoPor = header.cerradoPor || 'DESCONOCIDO';
+                if (!esSuper() && cerradoPor !== myEmail) {
+                    showConfirm(`🔒 ESTE TURNO ESTÁ CERRADO POR ${cerradoPor.toUpperCase()}. SOLO QUIEN LO CERRÓ O UN SUPER ADMIN PUEDE MODIFICARLO.`, null);
+                    return Promise.resolve();
+                }
+            }
+        } catch (e) {
+            console.warn('No se pudo verificar el estado del turno:', e);
+        }
+
         const upd = {};
         Object.keys(cambios).forEach(campo => { upd[`${ia}/tareas/${it}/${campo}`] = cambios[campo]; });
         return dbUpd(dbRefs.aviones, upd, 'GUARDAR TAREA')
-            .then(() => seguroCompartidas(publicarIndiceTareas));
+            .then(() => seguroCompartidas(publicarIndiceTareas))
+            .catch(() => {}); // El error ya se muestra en dbUpd; evitamos unhandled rejection
     }
     
     // Sugerencias del campo TEAM LEADER: los miembros del equipo que se está viendo, con
@@ -8915,7 +9074,18 @@
         const available = getAvailableTechs();
         const match = available.find(t => t.nombre === name) || null;
         if (match) {
-            shiftTechs.push({ nombre: match.nombre, bp: match.bp, codigo: match.codigo });
+            let codigo = match.codigo;
+            // Si viene del Sheet pero sin codigo, intentar obtenerlo para la fecha/turno actual
+            if (!codigo && match.bp && match.fuente === 'sheet') {
+                try {
+                    const codigosMap = await getCodigosTurnoMap();
+                    const bpNorm = normalizeBp(match.bp);
+                    codigo = codigosMap[bpNorm] || null;
+                } catch (e) {
+                    console.warn('No se pudo resolver codigo del tecnico:', e);
+                }
+            }
+            shiftTechs.push({ nombre: match.nombre, bp: match.bp, codigo: codigo });
         } else {
             shiftTechs.push({ nombre: name, bp: null, codigo: null });
         }
@@ -8983,13 +9153,114 @@
             dbSet(dbRefs.techs, [], 'TRASLADAR');
             dbSet(dbRefs.header, { turno: activeTurno, jefe: "", estado: "abierto", cerradoPor: "", actividadTitulo: '⭐ ACTIVIDADES EXTRA', mensajes: [] }, 'TRASLADAR');
 
-            // Redirigir al destino nuevo
-            document.getElementById('global-date-select').value = newDate;
-            document.getElementById('global-turno-select').value = newTurno;
-            activeTurno = newTurno;
-            viewingDate = newDate;
-            localStorage.setItem('latam_active_turno', activeTurno);
-            listenToTurno(activeTurno);
+            showToast('✅ TURNO TRASLADADO. PERMANECES EN EL TURNO ACTUAL.');
+        });
+    }
+
+    async function swapShift() {
+        if (checkLock()) return;
+        if (!puedeLiderar()) return showConfirm('INTERCAMBIAR EL TURNO ES DEL TEAM LEADER.', null);
+        const newDate = document.getElementById('manage-shift-date').value;
+        const newTurno = document.getElementById('manage-shift-turno').value;
+
+        if (newDate === viewingDate && newTurno === activeTurno) {
+            return showConfirm("SELECCIONA UNA FECHA O TURNO DIFERENTE PARA INTERCAMBIAR.", null);
+        }
+
+        closeModal('manage-shift-modal');
+
+        showConfirm(`⚠️ ¿CONFIRMAS INTERCAMBIAR TODO CON:\n${newTurno.toUpperCase()} DEL ${newDate}?`, async () => {
+            const safeNewTurno = newTurno.replace(/\s+/g, '_');
+            const [ny, nm, nd] = newDate.split('-');
+            const newPath = `${datosPath()}/historial/${ny}/${nm}/${nd}/${safeNewTurno}`;
+
+            try {
+                const [avionesSnap, techsSnap, headerSnap] = await Promise.all([
+                    get(ref(db, `${newPath}/aviones`)).catch(() => null),
+                    get(ref(db, `${newPath}/techs`)).catch(() => null),
+                    get(ref(db, `${newPath}/header`)).catch(() => null)
+                ]);
+
+                const destAviones = avionesSnap ? (avionesSnap.val() || []) : [];
+                const destTechs = techsSnap ? (techsSnap.val() || []) : [];
+                const destHeader = headerSnap ? (headerSnap.val() || {}) : {};
+
+                // Copiar los datos del origen ANTES de escribir, porque avionesData y
+                // shiftTechs son referencias que Firebase actualiza por el listener en
+                // cuanto modificamos dbRefs.aviones / dbRefs.techs.
+                const origAviones = JSON.parse(JSON.stringify(avionesData || []));
+                const origTechs = JSON.parse(JSON.stringify(shiftTechs || []));
+
+                const currentJefe = document.getElementById('in-jefe').value.toUpperCase();
+                const origHeader = {
+                    turno: newTurno,
+                    jefe: currentJefe,
+                    estado: shiftState.estado,
+                    cerradoPor: shiftState.cerradoPor,
+                    actividadTitulo: actividadGrupoTitulo,
+                    mensajes: groupMessages
+                };
+
+                // Origen recibe lo del destino
+                dbSet(dbRefs.aviones, destAviones, 'INTERCAMBIAR');
+                dbSet(dbRefs.techs, destTechs, 'INTERCAMBIAR');
+                dbSet(dbRefs.header, {
+                    turno: activeTurno,
+                    jefe: destHeader.jefe || "",
+                    estado: destHeader.estado || "abierto",
+                    cerradoPor: destHeader.cerradoPor || "",
+                    actividadTitulo: destHeader.actividadTitulo || '⭐ ACTIVIDADES EXTRA',
+                    mensajes: destHeader.mensajes || []
+                }, 'INTERCAMBIAR');
+
+                // Destino recibe lo del origen (usar las copias, no las referencias vivas)
+                dbSet(ref(db, `${newPath}/aviones`), origAviones, 'INTERCAMBIAR');
+                dbSet(ref(db, `${newPath}/techs`), origTechs, 'INTERCAMBIAR');
+                dbSet(ref(db, `${newPath}/header`), origHeader, 'INTERCAMBIAR');
+
+                showToast('✅ TURNOS INTERCAMBIADOS. PERMANECES EN EL TURNO ACTUAL.');
+            } catch (e) {
+                console.error('INTERCAMBIAR ERROR', e);
+                showConfirm('ERROR AL INTERCAMBIAR EL TURNO.\n' + (e.message || e), null);
+            }
+        });
+    }
+
+    async function copyShift() {
+        if (checkLock()) return;
+        if (!puedeLiderar()) return showConfirm('COPIAR EL TURNO ES DEL TEAM LEADER.', null);
+        const newDate = document.getElementById('manage-shift-date').value;
+        const newTurno = document.getElementById('manage-shift-turno').value;
+
+        if (newDate === viewingDate && newTurno === activeTurno) {
+            return showConfirm("SELECCIONA UNA FECHA O TURNO DIFERENTE PARA COPIAR.", null);
+        }
+
+        closeModal('manage-shift-modal');
+
+        showConfirm(`⚠️ ¿CONFIRMAS COPIAR TODO A:\n${newTurno.toUpperCase()} DEL ${newDate}?\n\nEL TURNO ACTUAL NO SE BORRARÁ.`, async () => {
+            const safeNewTurno = newTurno.replace(/\s+/g, '_');
+            const [ny, nm, nd] = newDate.split('-');
+            const newPath = `${datosPath()}/historial/${ny}/${nm}/${nd}/${safeNewTurno}`;
+
+            try {
+                const currentJefe = document.getElementById('in-jefe').value.toUpperCase();
+                dbSet(ref(db, `${newPath}/aviones`), avionesData, 'COPIAR');
+                dbSet(ref(db, `${newPath}/techs`), shiftTechs, 'COPIAR');
+                dbSet(ref(db, `${newPath}/header`), {
+                    turno: newTurno,
+                    jefe: currentJefe,
+                    estado: shiftState.estado,
+                    cerradoPor: shiftState.cerradoPor,
+                    actividadTitulo: actividadGrupoTitulo,
+                    mensajes: groupMessages
+                }, 'COPIAR');
+
+                showToast('✅ TURNO COPIADO. PERMANECES EN EL TURNO ACTUAL.');
+            } catch (e) {
+                console.error('COPIAR ERROR', e);
+                showConfirm('ERROR AL COPIAR EL TURNO.\n' + (e.message || e), null);
+            }
         });
     }
 
@@ -9578,37 +9849,61 @@
         const tarea = (avion.tareas || []).find(t => t.id == tId); if (!tarea) return;
         statusCurrentAvionId = aId;
         statusCurrentTaskId = tId;
+        const mainGrid = document.getElementById('status-grid-main');
         const grid = document.getElementById('status-grid');
         const otroWrap = document.getElementById('status-otro-wrap');
         const otroInput = document.getElementById('status-otro-input');
         const otroCheck = document.getElementById('status-otro-completa');
         const commentInput = document.getElementById('status-comment-input');
+        mainGrid.innerHTML = '';
         grid.innerHTML = '';
+
+        // Boton SIN ESTADO va en el grupo principal
         const sinBtn = document.createElement('button');
         sinBtn.type = 'button';
         sinBtn.className = 'status-btn ' + (!tarea.estado ? ' selected' : '');
         sinBtn.textContent = 'SIN ESTADO';
         sinBtn.dataset.status = '';
         sinBtn.onclick = () => selectTaskStatus('');
-        grid.appendChild(sinBtn);
-        Object.keys(TASK_STATUS).forEach(key => {
+        mainGrid.appendChild(sinBtn);
+
+        // Grupo principal: START, FINISH, JOB STOP (juntos arriba)
+        const MAIN_STATUS_KEYS = ['start', 'cerrado', 'pausado'];
+        MAIN_STATUS_KEYS.forEach(key => {
             const cfg = TASK_STATUS[key];
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'status-btn ' + cfg.colorClass + (tarea.estado === key ? ' selected' : '');
-            btn.textContent = cfg.label;
+            btn.textContent = cfg.modalLabel || cfg.label;
+            btn.dataset.status = key;
+            btn.onclick = () => selectTaskStatus(key);
+            mainGrid.appendChild(btn);
+        });
+
+        // Resto de estados abajo
+        Object.keys(TASK_STATUS).forEach(key => {
+            if (MAIN_STATUS_KEYS.indexOf(key) !== -1) return;
+            const cfg = TASK_STATUS[key];
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'status-btn ' + cfg.colorClass + (tarea.estado === key ? ' selected' : '');
+            btn.textContent = cfg.modalLabel || cfg.label;
             btn.dataset.status = key;
             btn.onclick = () => selectTaskStatus(key);
             grid.appendChild(btn);
         });
         statusCurrentKey = tarea.estado || '';
-        if (statusCurrentKey === 'otro') {
+        const currentCfg = TASK_STATUS[statusCurrentKey] || {};
+        const currentNeedsCheckbox = statusCurrentKey === 'otro' || currentCfg.doneConfigurable;
+        if (currentNeedsCheckbox) {
             otroWrap.classList.add('visible');
-            otroInput.value = tarea.estadoOtro || '';
+            otroInput.style.display = statusCurrentKey === 'otro' ? 'block' : 'none';
+            otroInput.value = statusCurrentKey === 'otro' ? (tarea.estadoOtro || '') : '';
             otroCheck.checked = !!tarea.done;
         } else {
             otroWrap.classList.remove('visible');
             otroInput.value = '';
+            otroInput.style.display = 'none';
             otroCheck.checked = false;
         }
         commentInput.value = tarea.estadoComment || '';
@@ -9618,13 +9913,20 @@
 
     function selectTaskStatus(key) {
         statusCurrentKey = key;
-        document.querySelectorAll('#status-grid .status-btn').forEach(b => b.classList.toggle('selected', b.dataset.status === key));
+        document.querySelectorAll('#status-grid-main .status-btn, #status-grid .status-btn').forEach(b => b.classList.toggle('selected', b.dataset.status === key));
         const otroWrap = document.getElementById('status-otro-wrap');
-        if (key === 'otro') {
+        const otroInput = document.getElementById('status-otro-input');
+        const cfg = TASK_STATUS[key] || {};
+        const needsCompleteCheckbox = key === 'otro' || cfg.doneConfigurable;
+        if (needsCompleteCheckbox) {
             otroWrap.classList.add('visible');
-            setTimeout(() => document.getElementById('status-otro-input').focus(), 50);
+            otroInput.style.display = key === 'otro' ? 'block' : 'none';
+            if (key === 'otro') {
+                setTimeout(() => otroInput.focus(), 50);
+            }
         } else {
             otroWrap.classList.remove('visible');
+            otroInput.style.display = 'none';
         }
     }
 
@@ -9657,19 +9959,22 @@
         }
         const cfg = TASK_STATUS[guardarEstado];
         let estadoOtro = '';
-        let otroCompleta = false;
+        let marcaCompleta = false;
+        const esConfigurable = guardarEstado === 'otro' || cfg.doneConfigurable;
         if (guardarEstado === 'otro') {
             estadoOtro = document.getElementById('status-otro-input').value.trim().toUpperCase();
             if (!estadoOtro) return showConfirm('ESCRIBE EL ESTADO.', null);
             if (estadoOtro.length > OTRO_MAX_LEN) return showConfirm('MÁXIMO ' + OTRO_MAX_LEN + ' CARACTERES.', null);
-            otroCompleta = document.getElementById('status-otro-completa').checked;
+        }
+        if (esConfigurable) {
+            marcaCompleta = document.getElementById('status-otro-completa').checked;
         }
         const estadoComment = document.getElementById('status-comment-input').value.trim().toUpperCase();
         if (estadoComment.length > 200) return showConfirm('MÁXIMO 200 CARACTERES EN LA NOTA.', null);
         tarea.estado = guardarEstado;
         tarea.estadoOtro = estadoOtro;
         tarea.estadoComment = estadoComment;
-        tarea.done = guardarEstado === 'otro' ? otroCompleta : cfg.done;
+        tarea.done = esConfigurable ? marcaCompleta : cfg.done;
         if (tarea.done) tarea.atencion = false;
         render(); // feedback inmediato en pantalla
         if (tarea.done) {
@@ -9728,7 +10033,7 @@
         }
         setTimeout(() => {
             localMutation = true;
-            const payload = Object.assign({ done: true, atencion: false }, extra || {});
+            const payload = Object.assign({ done: true, atencion: false, alerta: '', alertaByTL: false, alertaNombre: '' }, extra || {});
             guardarMarcaTarea(aId, tId, payload);
         }, delay);
     }
@@ -12094,7 +12399,7 @@
         // ver todos los equipos y gestionarlos
         cambiarEquipoGestionado, pintarSelectorGestion, ligarEquipo, avionEditable,
         turnoCerradoPara, equipoEnEdicion,
-        openManageShiftModal, deleteEntireShift, moveShift, startOrderDrag, performSearch, clearSearch,
+        openManageShiftModal, deleteEntireShift, moveShift, swapShift, copyShift, startOrderDrag, performSearch, clearSearch,
         toggleSearch, closeSearch, setSearchOpen,
         openAdminModal, adminAddUser, refreshAdminList, adminSugerir, adminCompletar,
         catalogoUsuarios, buscarUsuarioPorTexto, adminAlternarFiltroEquipo,
