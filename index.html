@@ -659,6 +659,12 @@
             padding: 2px 8px; border-radius: 14px; font-size: 10px;
             display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
         }
+        /* El total de técnicos es solo un contador, no un botón: sin borde ni
+           "manito", para que no se confunda con las pastillas que sí se tocan. */
+        .tech-pill-total {
+            background: transparent; border-color: transparent; cursor: default;
+            padding-left: 2px; padding-right: 4px;
+        }
         
         .tech-pill span.tech-name { line-height: 1; }
         .tech-pill span.tech-remove { 
@@ -4423,32 +4429,6 @@
         return Array.isArray(data) ? data : [];
     }
 
-    // Cache de codigos BP -> codigo para la fecha/turno actual (para mostrar pastillas 9H14, etc.)
-    let codigosTurnoCache = { date: '', turno: '', map: {}, ts: 0 };
-    const CODIGOS_TURNO_CACHE_TTL_MS = 5 * 60 * 1000;
-
-    async function getCodigosTurnoMap() {
-        const date = viewingDate;
-        const turno = activeTurno;
-        const now = Date.now();
-        if (codigosTurnoCache.date === date && codigosTurnoCache.turno === turno && (now - codigosTurnoCache.ts) < CODIGOS_TURNO_CACHE_TTL_MS) {
-            return codigosTurnoCache.map;
-        }
-        const map = {};
-        try {
-            const data = await fetchRolSheetForDate(date, turno);
-            (data || []).forEach(t => {
-                const bp = normalizeBp(t.bp);
-                const codigo = String(t.codigo || '').trim();
-                if (bp && codigo) map[bp] = codigo;
-            });
-        } catch (e) {
-            console.warn('No se pudieron cargar códigos de turno:', e);
-        }
-        codigosTurnoCache = { date, turno, map, ts: now };
-        return map;
-    }
-
     async function fetchRolSheetAllTechs(monthKey) {
         const url = getRolSheetUrlForMonth(monthKey);
         if (!url) throw new Error('NO HAY URL CONFIGURADA PARA EL MES ' + monthKey);
@@ -4479,58 +4459,46 @@
         return data;
     }
 
-    // Cache de tecnicos del Sheet para el cuadro de agregar tecnicos rapido.
-    // Se renueva cada 10 minutos o al cambiar de mes, para no perder cambios del Sheet.
-    // Tambien se guarda en localStorage para sobrevivir recargas de pagina.
-    const ADD_TECH_CACHE_KEY = 'latam_add_tech_sheet_cache';
-    const ADD_TECH_CACHE_TTL_MS = 10 * 60 * 1000;
-    let addTechSheetCache = { monthKey: '', techs: [], ts: 0 };
-
-    function loadAddTechCacheFromStorage() {
-        try {
-            const raw = localStorage.getItem(ADD_TECH_CACHE_KEY);
-            if (!raw) return;
-            const parsed = JSON.parse(raw);
-            if (parsed && typeof parsed.ts === 'number' && Array.isArray(parsed.techs)) {
-                addTechSheetCache = { monthKey: parsed.monthKey || '', techs: parsed.techs, ts: parsed.ts };
-            }
-        } catch (e) {
-            console.warn('No se pudo leer cache de tecnicos del Sheet:', e);
-        }
-    }
-    function saveAddTechCacheToStorage() {
-        try {
-            localStorage.setItem(ADD_TECH_CACHE_KEY, JSON.stringify(addTechSheetCache));
-        } catch (e) {
-            console.warn('No se pudo guardar cache de tecnicos del Sheet:', e);
-        }
-    }
-    loadAddTechCacheFromStorage();
+    // Cache de técnicos del rol del DÍA que se está viendo, para el cuadro de
+    // agregar técnicos: las sugerencias son de TODO EL EQUIPO (los tres turnos),
+    // no solo del turno actual. Usa el MISMO endpoint del Sheet que la
+    // sincronización con el rol (fecha+turno, que es el que funciona), una vez
+    // por cada turno del día. Antes se usaba el modo "todo el mes" del Apps
+    // Script, que no está desplegado y dejaba las sugerencias vacías.
+    let addTechDiaCache = { date: '', techs: [], ts: 0 };
+    const ADD_TECH_DIA_TTL_MS = 5 * 60 * 1000;
+    const TURNOS_DEL_DIA = ['Turno Día', 'Turno Tarde', 'Turno Noche'];
 
     function setAddTechLoading(mostrar) {
         const el = document.getElementById('add-tech-loading');
         if (el) el.style.display = mostrar ? 'inline' : 'none';
     }
 
-    async function ensureAddTechSheetCache(monthKey) {
+    async function ensureAddTechDiaCache() {
         const now = Date.now();
-        if (addTechSheetCache.monthKey === monthKey && (now - addTechSheetCache.ts) < ADD_TECH_CACHE_TTL_MS) {
-            return addTechSheetCache.techs;
+        if (addTechDiaCache.date === viewingDate && (now - addTechDiaCache.ts) < ADD_TECH_DIA_TTL_MS) {
+            return addTechDiaCache.techs;
         }
         setAddTechLoading(true);
         try {
-            const data = await fetchRolSheetAllTechs(monthKey);
-            addTechSheetCache = { monthKey, techs: data || [], ts: now };
-            saveAddTechCacheToStorage();
-            return addTechSheetCache.techs;
-        } catch (e) {
-            console.warn('No se pudo cargar tecnicos del Sheet para autocompletado:', e);
-            addTechSheetCache = { monthKey, techs: [], ts: now };
-            saveAddTechCacheToStorage();
-            return [];
+            // Los tres turnos del día en paralelo; si uno falla, se sigue con los demás.
+            const listas = await Promise.all(TURNOS_DEL_DIA.map(t =>
+                fetchRolSheetForDate(viewingDate, t).catch(e => {
+                    console.warn('No se pudo leer el rol de ' + t + ' para las sugerencias:', e);
+                    return [];
+                })
+            ));
+            // Un técnico puede salir en más de un turno: se deduplica por BP (o nombre).
+            const vistos = new Map();
+            listas.forEach(lista => (lista || []).forEach(t => {
+                const clave = normalizeBp(t.bp) || String(t.nombre || '').trim().toUpperCase();
+                if (clave && !vistos.has(clave)) vistos.set(clave, t);
+            }));
+            addTechDiaCache = { date: viewingDate, techs: Array.from(vistos.values()), ts: now };
         } finally {
             setAddTechLoading(false);
         }
+        return addTechDiaCache.techs;
     }
 
     function resolveSheetTechName(bp, fallback) {
@@ -4540,22 +4508,33 @@
     }
 
     function getAvailableTechs() {
-        const monthKey = viewingDate.slice(0, 7);
         const map = new Map();
         // Manuales primero
         (globalTechs || []).forEach(nombre => {
             const n = String(nombre || '').trim().toUpperCase();
             if (n) map.set(n, { nombre: n, bp: null, codigo: null, fuente: 'manual' });
         });
-        // Del Sheet (con cache actual o no)
-        const sheetTechs = (addTechSheetCache.monthKey === monthKey) ? addTechSheetCache.techs : [];
-        sheetTechs.forEach(t => {
-            const bp = String(t.bp || '').trim().toUpperCase();
+        // Del rol del día que se está viendo (los tres turnos), solo de los
+        // grupos del equipo (los mismos de la librería y del botón ROL). Si con
+        // el filtro no queda NADIE (los grupos configurados no calzan con los del
+        // Sheet), se dejan todos: mejor sobrar en sugerencias que no dar ninguna.
+        const grupos = (configGruposPorEquipo[sanitizeTeamId(currentTeam)] || [])
+            .map(g => String(g).trim().toUpperCase()).filter(Boolean);
+        let lista = (addTechDiaCache.date === viewingDate) ? addTechDiaCache.techs : [];
+        if (grupos.length) {
+            const filtrados = lista.filter(t => grupos.indexOf(String(t.grupo || '').trim().toUpperCase()) !== -1);
+            if (filtrados.length) lista = filtrados;
+            else console.warn('Sugerencias: ningún técnico del Sheet coincide con los grupos configurados para el equipo', grupos);
+        }
+        lista.forEach(t => {
+            const bp = normalizeBp(t.bp);
             const nombre = resolveSheetTechName(bp, t.nombre);
-            if (!nombre) return;
-            if (!map.has(nombre)) {
-                map.set(nombre, { nombre, bp: bp || null, codigo: t.codigo || null, fuente: 'sheet' });
-            }
+            if (!nombre || map.has(nombre)) return;
+            map.set(nombre, {
+                nombre, bp: bp || null,
+                codigo: String(t.codigo || '').trim() || null,
+                fuente: 'sheet'
+            });
         });
         return Array.from(map.values()).sort((a, b) => a.nombre.localeCompare(b.nombre));
     }
@@ -4563,10 +4542,12 @@
     async function ensureAddTechDatalist() {
         const datalist = document.getElementById('add-tech-datalist');
         if (!datalist) return;
-        const monthKey = viewingDate.slice(0, 7);
-        await ensureAddTechSheetCache(monthKey);
+        await ensureAddTechDiaCache();
         const techs = getAvailableTechs();
-        datalist.innerHTML = techs.map(t => `<option value="${escapeAttr(t.nombre)}">${escapeAttr(t.nombre)}${t.bp ? ' · BP ' + escapeAttr(t.bp) : ''}</option>`).join('');
+        datalist.innerHTML = techs.map(t => {
+            const detalle = [t.codigo, t.bp ? 'BP ' + t.bp : ''].filter(Boolean).join(' · ');
+            return `<option value="${escapeAttr(t.nombre)}">${escapeAttr(t.nombre)}${detalle ? ' · ' + escapeAttr(detalle) : ''}</option>`;
+        }).join('');
     }
 
     let isTeamLeader = false;      // tiene POD_LIDER: es TL de verdad
@@ -9070,22 +9051,12 @@
         if (!name) return;
         if (findTechIndexByName(name) !== -1) return showConfirm("ESTE TÉCNICO YA ESTÁ EN EL TURNO.", null);
 
-        await ensureAddTechSheetCache(viewingDate.slice(0, 7));
+        await ensureAddTechDiaCache();
         const available = getAvailableTechs();
         const match = available.find(t => t.nombre === name) || null;
         if (match) {
-            let codigo = match.codigo;
-            // Si viene del Sheet pero sin codigo, intentar obtenerlo para la fecha/turno actual
-            if (!codigo && match.bp && match.fuente === 'sheet') {
-                try {
-                    const codigosMap = await getCodigosTurnoMap();
-                    const bpNorm = normalizeBp(match.bp);
-                    codigo = codigosMap[bpNorm] || null;
-                } catch (e) {
-                    console.warn('No se pudo resolver codigo del tecnico:', e);
-                }
-            }
-            shiftTechs.push({ nombre: match.nombre, bp: match.bp, codigo: codigo });
+            // el código de turno ya viene en la lectura del rol del día
+            shiftTechs.push({ nombre: match.nombre, bp: match.bp, codigo: match.codigo || null });
         } else {
             shiftTechs.push({ nombre: name, bp: null, codigo: null });
         }
@@ -9287,6 +9258,21 @@
         renderTechPills();
     }
 
+    // Orden de las pastillas de código: primero por la hora de inicio (06 antes
+    // que 08) y, a la misma hora, por la jornada (8h antes que 9h):
+    // 8H06, 9H06, 8H08, 9H08... Lo que no sigue ese formato va al final.
+    function compararCodigosTurno(a, b) {
+        const pa = /^(\d+)H(\d+)$/i.exec(a);
+        const pb = /^(\d+)H(\d+)$/i.exec(b);
+        if (pa && pb) {
+            return (parseInt(pa[2], 10) - parseInt(pb[2], 10))
+                || (parseInt(pa[1], 10) - parseInt(pb[1], 10));
+        }
+        if (pa) return -1;
+        if (pb) return 1;
+        return String(a).localeCompare(String(b));
+    }
+
     function renderTechPills() {
         const container = document.getElementById('tech-pills-container');
         if (!container) return;
@@ -9296,7 +9282,7 @@
             return;
         }
         const assigned = getAssignedTechsSet();
-        const countPill = document.createElement('div'); countPill.className = 'tech-pill';
+        const countPill = document.createElement('div'); countPill.className = 'tech-pill tech-pill-total';
         countPill.style.fontWeight = '800';
         countPill.title = `Total de técnicos en el turno: ${shiftTechs.length}`;
         countPill.innerHTML = `<span class="tech-name">👥 ${shiftTechs.length}</span>`;
@@ -9306,7 +9292,7 @@
         const techCodes = shiftTechs.map(t => techCodigo(t) || 'SIN CÓDIGO');
         const codeCounts = {};
         techCodes.forEach(c => { codeCounts[c] = (codeCounts[c] || 0) + 1; });
-        const distinctCodes = Object.keys(codeCounts).sort();
+        const distinctCodes = Object.keys(codeCounts).sort(compararCodigosTurno);
         if (distinctCodes.length > 0 && !(distinctCodes.length === 1 && distinctCodes[0] === 'SIN CÓDIGO')) {
             if (activeCodeFilter && !distinctCodes.includes(activeCodeFilter)) activeCodeFilter = '';
             distinctCodes.forEach(code => {
@@ -9585,6 +9571,44 @@
         `;
     }
 
+    // Las tareas con estado START van primero dentro de cada bloque. La usan
+    // render() y las dos vistas agrupadas: vive ACÁ FUERA a propósito. Antes
+    // estaba dentro de render() y las vistas agrupadas caían con
+    // "Can't find variable: ordenarStartPrimero".
+    function ordenarStartPrimero(arr, getEstado) {
+        return arr.slice().sort((a, b) => {
+            const ea = (getEstado ? getEstado(a) : a.estado) === 'start' ? 0 : 1;
+            const eb = (getEstado ? getEstado(b) : b.estado) === 'start' ? 0 : 1;
+            return ea - eb;
+        });
+    }
+
+    function renderGruposVacios(container) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'avion-section';
+        emptyDiv.innerHTML = `<div class="avion-title"><div class="avion-info-main">ℹ️ NO HAY TAREAS PARA AGRUPAR</div></div>`;
+        container.appendChild(emptyDiv);
+    }
+
+    // Un bloque por técnico (o por grupo de técnicos): pendientes primero y las
+    // completadas después. Lo comparten las dos vistas agrupadas.
+    function renderGrupoSeccion(container, icono, titulo, tasks) {
+        const div = document.createElement('div');
+        div.className = 'avion-section';
+        let html = `
+            <div class="avion-title" style="background: var(--leader-color);">
+                <div class="avion-info-main">${icono} ${escapeHtml(titulo)} (${tasks.length})</div>
+            </div>
+            <div class="task-container">
+        `;
+        ordenarStartPrimero(tasks.filter(x => !x.task.done), x => x.task.estado)
+            .concat(tasks.filter(x => x.task.done))
+            .forEach(({avion, task}) => { html += generateTaskHTML(avion, task, true); });
+        html += `</div>`;
+        div.innerHTML = html;
+        container.appendChild(div);
+    }
+
     function renderGroupedByTech(data, container) {
         let grouped = {};
         listaTechsAMostrar().forEach(tech => grouped[tech] = []);
@@ -9595,37 +9619,34 @@
                 avion.tareas.forEach(t => {
                     let assigned = false;
                     if (t.techs) {
-                        const assignedTechs = t.techs.split(' - ');
-                        assignedTechs.forEach(tech => {
+                        t.techs.split(' - ').forEach(tech => {
                             if (grouped[tech] !== undefined) {
                                 grouped[tech].push({avion, task: t});
                                 assigned = true;
                             }
                         });
                     }
-                    if (!assigned) { grouped["SIN ASIGNAR"].push({avion, task: t}); }
+                    if (!assigned) grouped["SIN ASIGNAR"].push({avion, task: t});
                 });
             }
         });
 
-        for (const [tech, tasks] of Object.entries(grouped)) {
-            if (tasks.length === 0) continue; 
-            const div = document.createElement('div'); div.className = 'avion-section';
-            
-            let html = `
-                <div class="avion-title" style="background: var(--leader-color);">
-                    <div class="avion-info-main">👨‍🔧 ${escapeHtml(tech)}</div>
-                </div>
-                <div class="task-container">
-            `;
-            const pendingTasks = ordenarStartPrimero(tasks.filter(x => !x.task.done), x => x.task.estado);
-            const completedTasks = tasks.filter(x => x.task.done);
-            pendingTasks.forEach(({avion, task}) => { html += generateTaskHTML(avion, task, true); });
-            completedTasks.forEach(({avion, task}) => { html += generateTaskHTML(avion, task, true); });
-            html += `</div>`;
-
-            div.innerHTML = html; container.appendChild(div);
+        if (!Object.values(grouped).some(tasks => tasks.length > 0)) {
+            renderGruposVacios(container);
+            return;
         }
+
+        for (const [tech, tasks] of Object.entries(grouped)) {
+            if (tasks.length === 0) continue;
+            renderGrupoSeccion(container, '👨‍🔧', tech, tasks);
+        }
+    }
+
+    function normalizeTechGroup(techs) {
+        if (!techs) return 'SIN ASIGNAR';
+        const parts = String(techs).split(' - ').map(s => s.trim().toUpperCase()).filter(Boolean);
+        if (parts.length === 0) return 'SIN ASIGNAR';
+        return parts.sort().join(' - ');
     }
 
     function renderGroupedByExactTechs(data, container) {
@@ -9634,196 +9655,184 @@
         data.forEach(avion => {
             if (avion.tareas) {
                 avion.tareas.forEach(t => {
-                    let groupName = (t.techs && t.techs.trim() !== '') ? t.techs.trim() : "SIN ASIGNAR";
-                    if (!grouped[groupName]) {
-                        grouped[groupName] = [];
-                    }
+                    const groupName = normalizeTechGroup(t.techs);
+                    if (!grouped[groupName]) grouped[groupName] = [];
                     grouped[groupName].push({avion, task: t});
                 });
             }
         });
 
-        let keys = Object.keys(grouped).sort((a, b) => {
+        const keys = Object.keys(grouped).sort((a, b) => {
             if (a === "SIN ASIGNAR") return 1;
             if (b === "SIN ASIGNAR") return -1;
             return a.localeCompare(b);
         });
 
+        if (keys.length === 0) {
+            renderGruposVacios(container);
+            return;
+        }
+
         keys.forEach(group => {
             const tasks = grouped[group];
             if (tasks.length === 0) return;
-            const div = document.createElement('div'); div.className = 'avion-section';
-            
-            let html = `
-                <div class="avion-title" style="background: var(--leader-color);">
-                    <div class="avion-info-main">👥 ${escapeHtml(group)}</div>
-                </div>
-                <div class="task-container">
-            `;
-            const pendingTasks = ordenarStartPrimero(tasks.filter(x => !x.task.done), x => x.task.estado);
-            const completedTasks = tasks.filter(x => x.task.done);
-            pendingTasks.forEach(({avion, task}) => { html += generateTaskHTML(avion, task, true); });
-            completedTasks.forEach(({avion, task}) => { html += generateTaskHTML(avion, task, true); });
-            html += `</div>`;
-
-            div.innerHTML = html; container.appendChild(div);
+            renderGrupoSeccion(container, '👥', group, tasks);
         });
     }
 
     // P2 FIX: Render optimizado con DocumentFragment - antes repintaba toda la casa por 1 clavo
     function render() {
-        const container = document.getElementById('aviones-container'); 
+        const container = document.getElementById('aviones-container');
+        if (!container) return;
         container.innerHTML = '';
-        const fragment = document.createDocumentFragment();
-        let displayData = JSON.parse(JSON.stringify(listaAMostrar()));
-        const allowOrder = puedePlanificar() && shiftState.estado !== 'cerrado' && !vistaTodos && currentViewMode === 'default' && !currentTechFilter;
+        try {
+            const fragment = document.createDocumentFragment();
+            let displayData = JSON.parse(JSON.stringify(listaAMostrar()));
+            const allowOrder = puedePlanificar() && shiftState.estado !== 'cerrado' && !vistaTodos && currentViewMode === 'default' && !currentTechFilter;
 
-        if (currentTechFilter) {
-            displayData.forEach(avion => {
-                if (avion.tareas) {
-                    avion.tareas = avion.tareas.filter(t => t.techs && t.techs.includes(currentTechFilter));
-                }
-            });
-            displayData = displayData.filter(avion => avion.tareas && avion.tareas.length > 0);
-        }
+            if (currentTechFilter) {
+                displayData.forEach(avion => {
+                    if (avion.tareas) {
+                        avion.tareas = avion.tareas.filter(t => t.techs && t.techs.includes(currentTechFilter));
+                    }
+                });
+                displayData = displayData.filter(avion => avion.tareas && avion.tareas.length > 0);
+            }
 
-        function isAvionAllDone(avion) {
-            if (!avion.tareas || avion.tareas.length === 0) return false;
-            return avion.tareas.every(t => t.done);
-        }
-        function ordenarStartPrimero(arr, getEstado) {
-            return arr.slice().sort((a, b) => {
-                const ea = (getEstado ? getEstado(a) : a.estado) === 'start' ? 0 : 1;
-                const eb = (getEstado ? getEstado(b) : b.estado) === 'start' ? 0 : 1;
-                return ea - eb;
-            });
-        }
+            function isAvionAllDone(avion) {
+                if (!avion.tareas || avion.tareas.length === 0) return false;
+                return avion.tareas.every(t => t.done);
+            }
 
-        if (currentViewMode === 'time') {
+            if (currentViewMode === 'time') {
+                displayData.sort((a, b) => {
+                    if (!a.start && !b.start) return 0;
+                    if (!a.start) return 1;
+                    if (!b.start) return -1;
+                    return a.start.localeCompare(b.start);
+                });
+            }
+
             displayData.sort((a, b) => {
-                if (!a.start && !b.start) return 0;
-                if (!a.start) return 1;
-                if (!b.start) return -1;
-                return a.start.localeCompare(b.start);
+                const aDone = isAvionAllDone(a);
+                const bDone = isAvionAllDone(b);
+                if (aDone && !bDone) return 1;
+                if (!aDone && bDone) return -1;
+                return 0;
             });
-        }
 
-        displayData.sort((a, b) => {
-            const aDone = isAvionAllDone(a);
-            const bDone = isAvionAllDone(b);
-            if (aDone && !bDone) return 1;
-            if (!aDone && bDone) return -1;
-            return 0;
-        });
+            if (currentViewMode === 'tech') {
+                renderGroupedByTech(displayData, container);
+                return;
+            }
 
-        if (currentViewMode === 'tech') {
-            renderGroupedByTech(displayData, container);
-            return;
-        }
+            if (currentViewMode === 'tech-group') {
+                renderGroupedByExactTechs(displayData, container);
+                return;
+            }
 
-        if (currentViewMode === 'tech-group') {
-            renderGroupedByExactTechs(displayData, container);
-            return;
-        }
+            // Separar aviones y actividades: los aviones primero, luego TODAS las actividades juntas bajo un solo banner
+            const planes = displayData.filter(a => !a.isActivity);
+            const activities = displayData.filter(a => a.isActivity);
 
-        // Separar aviones y actividades: los aviones primero, luego TODAS las actividades juntas bajo un solo banner
-        const planes = displayData.filter(a => !a.isActivity);
-        const activities = displayData.filter(a => a.isActivity);
+            planes.forEach(avion => {
+                const div = document.createElement('div'); div.className = 'avion-section'; div.dataset.avionId = avion.id;
+                const equipoChip = vistaTodos && avion._equipo
+                    ? `<span class="todos-avion">${escapeHtml(equipoNombre(avion._equipo).toUpperCase())}</span>`
+                    : '';
+                const wpDisplay = avion.wp ? `<span class="tango-link" onclick="handleTangoClick('${escapeJsString(avion.wp)}')">[${escapeHtml(avion.wp)}]</span>` : '';
+                const posDisplay = avion.pos ? `<span class="avion-pos">POS: ${escapeHtml(avion.pos)}</span>` : '';
+                const timesLabel = buildTimesLabel(avion.start, avion.end);
+                const timesDisplay = timesLabel ? `<span class="avion-times">${escapeHtml(timesLabel)}</span>` : '';
 
-        planes.forEach(avion => {
-            const div = document.createElement('div'); div.className = 'avion-section'; div.dataset.avionId = avion.id;
-            const equipoChip = vistaTodos && avion._equipo
-                ? `<span class="todos-avion">${escapeHtml(equipoNombre(avion._equipo).toUpperCase())}</span>`
-                : '';
-            const wpDisplay = avion.wp ? `<span class="tango-link" onclick="handleTangoClick('${escapeJsString(avion.wp)}')">[${escapeHtml(avion.wp)}]</span>` : '';
-            const posDisplay = avion.pos ? `<span class="avion-pos">POS: ${escapeHtml(avion.pos)}</span>` : '';
-            const timesLabel = buildTimesLabel(avion.start, avion.end);
-            const timesDisplay = timesLabel ? `<span class="avion-times">${escapeHtml(timesLabel)}</span>` : '';
-            
-            const headerClass = isAvionAllDone(avion) ? ' all-done' : '';
-            
-            const equipoAvion = (vistaTodos && avion._equipo) ? avion._equipo : currentTeam;
-            const lockedAvion = turnoCerradoPara(equipoAvion);
-            let avionActionBtns = '';
-            if (!lockedAvion && puedePlanificarEn(equipoAvion)) {
-                avionActionBtns = `
-                    <div class="leader-only leader-wrapper">
-                        <button class="avion-btn" onclick="openAddTaskModal(${Number(avion.id)})">➕ TAREA</button>
-                        <button class="avion-btn" onclick="openPredefModal(${Number(avion.id)})" title="Agregar Tareas Predefinidas / Preventivas">📑 PREDEF.</button>
-                        <button class="avion-btn" onclick="openEditAvionModal(${Number(avion.id)})">✏️ EDITAR</button>
+                const headerClass = isAvionAllDone(avion) ? ' all-done' : '';
+
+                const equipoAvion = (vistaTodos && avion._equipo) ? avion._equipo : currentTeam;
+                const lockedAvion = turnoCerradoPara(equipoAvion);
+                let avionActionBtns = '';
+                if (!lockedAvion && puedePlanificarEn(equipoAvion)) {
+                    avionActionBtns = `
+                        <div class="leader-only leader-wrapper">
+                            <button class="avion-btn" onclick="openAddTaskModal(${Number(avion.id)})">➕ TAREA</button>
+                            <button class="avion-btn" onclick="openPredefModal(${Number(avion.id)})" title="Agregar Tareas Predefinidas / Preventivas">📑 PREDEF.</button>
+                            <button class="avion-btn" onclick="openEditAvionModal(${Number(avion.id)})">✏️ EDITAR</button>
+                        </div>
+                    `;
+                }
+
+                let html = `
+                    <div class="avion-title ${headerClass}">
+                        <div class="avion-info-main">
+                            <span class="avion-reg">• ${escapeHtml(avion.reg)} ${wpDisplay}</span> ${equipoChip} ${posDisplay} ${timesDisplay}
+                            ${avion.comment ? `<span class="avion-comment">NOTA: ${escapeHtml(avion.comment)}</span>` : ''}
+                        </div>
+                        <div class="avion-actions no-print">
+                            ${avionActionBtns}
+                            ${allowOrder ? `<span class="drag-handle leader-only no-print" onpointerdown="startOrderDrag(event, 'avion', ${Number(avion.id)})" oncontextmenu="event.preventDefault(); return false;" title="Sostener y arrastrar para ordenar">⋮⋮</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="task-container">
+                `;
+
+                if(avion.tareas) {
+                    const pendingTasks = ordenarStartPrimero(avion.tareas.filter(t => !t.done));
+                    const completedTasks = avion.tareas.filter(t => t.done);
+                    pendingTasks.forEach(t => { html += generateTaskHTML(avion, t, false, allowOrder); });
+                    completedTasks.forEach(t => { html += generateTaskHTML(avion, t, false, allowOrder); });
+                }
+
+                html += `</div>`;
+                div.innerHTML = html; fragment.appendChild(div);
+            });
+
+            // ACTIVIDADES EXTRA. En un equipo es un solo bloque; viendo todos se
+            // separa en uno por equipo: el título y los botones (agregar/editar el
+            // grupo) son de cada turno, y juntarlos haría que el título de uno
+            // nominara a las actividades de otro.
+            const gruposAct = vistaTodos
+                ? equiposAVisitar().map(t => ({ equipo: t, lista: activities.filter(a => (a._equipo || currentTeam) === t) }))
+                        .filter(g => g.lista.length > 0)
+                : [{ equipo: currentTeam, lista: activities }];
+            gruposAct.forEach(g => {
+                if (!g.lista.length) return;
+                const cab = (turnoDatos[g.equipo] || {}).header || {};
+                const titulo = (vistaTodos && cab.actividadTitulo) ? cab.actividadTitulo
+                    : (g.equipo === currentTeam ? actividadGrupoTitulo : (cab.actividadTitulo || actividadGrupoTitulo));
+                const gDiv = document.createElement('div');
+                gDiv.className = 'avion-section activity-group';
+                gDiv.dataset.avionId = 'actividades';
+                if (vistaTodos) gDiv.dataset.equipo = g.equipo;
+
+                const groupTasks = [];
+                g.lista.forEach(a => (a.tareas || []).forEach(t => groupTasks.push({ avion: a, task: t })));
+                const pendingTasks = ordenarStartPrimero(groupTasks.filter(x => !x.task.done), x => x.task.estado);
+                const completedTasks = groupTasks.filter(x => x.task.done);
+
+                let gHtml = `
+                    <div class="avion-title activity-header">
+                        <div class="avion-info-main">
+                            <span>${escapeHtml(titulo)}</span>
+                            ${vistaTodos ? `<span class="todos-avion">${escapeHtml(String(equipoNombre(g.equipo)).toUpperCase())}</span>` : ''}
+                        </div>
+                        <div class="avion-actions no-print">
+                            ${!turnoCerradoPara(g.equipo) && puedeLiderarEn(g.equipo) ? `<div class="leader-only leader-wrapper">
+                                <button class="avion-btn" onclick="openAddActivityModal()">➕ ACTIVIDAD</button>
+                                <button class="avion-btn" onclick="openEditActivityGroupModal()">✏️ EDITAR</button>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                    <div class="task-container">
+                        ${pendingTasks.map(x => generateTaskHTML(x.avion, x.task, false, allowOrder)).join('')}
+                        ${completedTasks.map(x => generateTaskHTML(x.avion, x.task, false, allowOrder)).join('')}
                     </div>
                 `;
-            }
-
-            let html = `
-                <div class="avion-title ${headerClass}">
-                    <div class="avion-info-main">
-                        <span class="avion-reg">• ${escapeHtml(avion.reg)} ${wpDisplay}</span> ${equipoChip} ${posDisplay} ${timesDisplay}
-                        ${avion.comment ? `<span class="avion-comment">NOTA: ${escapeHtml(avion.comment)}</span>` : ''}
-                    </div>
-                    <div class="avion-actions no-print">
-                        ${avionActionBtns}
-                        ${allowOrder ? `<span class="drag-handle leader-only no-print" onpointerdown="startOrderDrag(event, 'avion', ${Number(avion.id)})" oncontextmenu="event.preventDefault(); return false;" title="Sostener y arrastrar para ordenar">⋮⋮</span>` : ''}
-                    </div>
-                </div>
-                <div class="task-container">
-            `;
-
-            if(avion.tareas) {
-                const pendingTasks = ordenarStartPrimero(avion.tareas.filter(t => !t.done));
-                const completedTasks = avion.tareas.filter(t => t.done);
-                pendingTasks.forEach(t => { html += generateTaskHTML(avion, t, false, allowOrder); });
-                completedTasks.forEach(t => { html += generateTaskHTML(avion, t, false, allowOrder); });
-            }
-
-            html += `</div>`;
-            div.innerHTML = html; fragment.appendChild(div);
-        });
-
-        // ACTIVIDADES EXTRA. En un equipo es un solo bloque; viendo todos se
-        // separa en uno por equipo: el título y los botones (agregar/editar el
-        // grupo) son de cada turno, y juntarlos haría que el título de uno
-        // nominara a las actividades de otro.
-        const gruposAct = vistaTodos
-            ? equiposAVisitar().map(t => ({ equipo: t, lista: activities.filter(a => (a._equipo || currentTeam) === t) }))
-                    .filter(g => g.lista.length > 0)
-            : [{ equipo: currentTeam, lista: activities }];
-        gruposAct.forEach(g => {
-            if (!g.lista.length) return;
-            const cab = (turnoDatos[g.equipo] || {}).header || {};
-            const titulo = (vistaTodos && cab.actividadTitulo) ? cab.actividadTitulo
-                : (g.equipo === currentTeam ? actividadGrupoTitulo : (cab.actividadTitulo || actividadGrupoTitulo));
-            const gDiv = document.createElement('div');
-            gDiv.className = 'avion-section activity-group';
-            gDiv.dataset.avionId = 'actividades';
-            if (vistaTodos) gDiv.dataset.equipo = g.equipo;
-
-            const groupTasks = [];
-            g.lista.forEach(a => (a.tareas || []).forEach(t => groupTasks.push({ avion: a, task: t })));
-            const pendingTasks = ordenarStartPrimero(groupTasks.filter(x => !x.task.done), x => x.task.estado);
-            const completedTasks = groupTasks.filter(x => x.task.done);
-
-            let gHtml = `
-                <div class="avion-title activity-header">
-                    <div class="avion-info-main">
-                        <span>${escapeHtml(titulo)}</span>
-                        ${vistaTodos ? `<span class="todos-avion">${escapeHtml(String(equipoNombre(g.equipo)).toUpperCase())}</span>` : ''}
-                    </div>
-                    <div class="avion-actions no-print">
-                        ${!turnoCerradoPara(g.equipo) && puedeLiderarEn(g.equipo) ? `<div class="leader-only leader-wrapper">
-                            <button class="avion-btn" onclick="openAddActivityModal()">➕ ACTIVIDAD</button>
-                            <button class="avion-btn" onclick="openEditActivityGroupModal()">✏️ EDITAR</button>
-                        </div>` : ''}
-                    </div>
-                </div>
-                <div class="task-container">
-                    ${pendingTasks.map(x => generateTaskHTML(x.avion, x.task, false, allowOrder)).join('')}
-                    ${completedTasks.map(x => generateTaskHTML(x.avion, x.task, false, allowOrder)).join('')}
-                </div>
-            `;
-            gDiv.innerHTML = gHtml; fragment.appendChild(gDiv);
-        });
-        container.appendChild(fragment);
+                gDiv.innerHTML = gHtml; fragment.appendChild(gDiv);
+            });
+            container.appendChild(fragment);
+        } catch (e) {
+            console.error('RENDER ERROR', e);
+            container.innerHTML = `<div style="padding:20px;color:#c00;font-size:12px;">ERROR AL RENDERIZAR: ${escapeHtml(e && e.message ? e.message : String(e))}<br><pre style="white-space:pre-wrap;font-size:10px;">${escapeHtml(e && e.stack ? e.stack : '')}</pre></div>`;
+        }
     }
 
     function toggleTask(aId, tId) {
