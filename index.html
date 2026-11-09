@@ -9484,16 +9484,31 @@
         input.value = val.substring(0, 8); 
     }
 
-    async function handleTangoClick(tangoCode) {
-    try { 
-        await navigator.clipboard.writeText(tangoCode); 
-        const urlDirecta = `https://maintenix.lan.com/maintenix/common/TaskDetails.jsp?barcode=${encodeURIComponent(tangoCode)}`;
-        window.open(urlDirecta, '_blank'); 
-    } 
-    catch (err) { 
-        console.error('ERROR AL COPIAR:', err); 
+    function handleTangoClick(tangoCode) {
+    if (!tangoCode) return;
+
+    const urlDirecta = `https://maintenix.lan.com/maintenix/common/TaskDetails.jsp?barcode=${encodeURIComponent(tangoCode)}`;
+    window.open(urlDirecta, '_blank');
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(tangoCode).catch(err => console.error('ERROR AL COPIAR:', err));
+    } else {
+        try {
+            const temp = document.createElement('textarea');
+            temp.value = tangoCode;
+            temp.style.position = 'fixed';
+            temp.style.opacity = '0';
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+        } catch (err) {
+            console.error('ERROR AL COPIAR (FALLBACK):', err);
+        }
     }
 }
+window.handleTangoClick = handleTangoClick;
+    
     function closeModal(modalId) {
         document.getElementById(modalId).style.display = 'none';
         // Si se cierra el panel de tarea compartida sin guardar, el share sigue pendiente.
