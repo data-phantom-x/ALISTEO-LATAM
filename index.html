@@ -134,7 +134,7 @@
         ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #1F4A8C, #17A8B8); border-radius: 6px; border: 2px solid transparent; background-clip: content-box; }
         ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #17A8B8, #1F4A8C); background-clip: content-box; border: 2px solid transparent; }
 
-        .container { max-width: 1000px; margin: 0 auto; background: var(--surface); padding: 25px; border-radius: 24px 0 24px 0; box-shadow: 0 4px 12px color-mix(in srgb, var(--black) 5%, transparent); }
+        .container { max-width: 1440px; margin: 0 auto; background: var(--surface); padding: 25px; border-radius: 24px 0 24px 0; box-shadow: 0 4px 12px color-mix(in srgb, var(--black) 5%, transparent); }
         /* Botón flotante para activar botones en móvil (evita toques accidentales) */
         .fab-unlock {
             display: none; position: fixed; bottom: 20px; left: 20px; z-index: 1300;
@@ -9484,30 +9484,10 @@
         input.value = val.substring(0, 8); 
     }
 
-    function handleTangoClick(tangoCode) {
-    if (!tangoCode) return;
-
-    const urlDirecta = `https://maintenix.lan.com/maintenix/common/TaskDetails.jsp?barcode=${encodeURIComponent(tangoCode)}`;
-    window.open(urlDirecta, '_blank');
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(tangoCode).catch(err => console.error('ERROR AL COPIAR:', err));
-    } else {
-        try {
-            const temp = document.createElement('textarea');
-            temp.value = tangoCode;
-            temp.style.position = 'fixed';
-            temp.style.opacity = '0';
-            document.body.appendChild(temp);
-            temp.select();
-            document.execCommand('copy');
-            document.body.removeChild(temp);
-        } catch (err) {
-            console.error('ERROR AL COPIAR (FALLBACK):', err);
-        }
+    async function handleTangoClick(tangoCode) {
+        try { await navigator.clipboard.writeText(tangoCode); window.open(MAINTENIX_URL, '_blank'); } 
+        catch (err) { console.error('ERROR AL COPIAR:', err); }
     }
-}
-window.handleTangoClick = handleTangoClick;
     
     function closeModal(modalId) {
         document.getElementById(modalId).style.display = 'none';
