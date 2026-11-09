@@ -4562,7 +4562,7 @@
     let turnoDatos = {};           // <equipo> -> {aviones, techs, header}
     let editCurrentAvionId = null;
     let editCurrentTaskId = null;
-    const MAINTENIX_URL = "https://maintenix.lan.com/maintenix/common/ToDoList.jsp";
+    const MAINTENIX_SCAN_URL = "https://maintenix.lan.com/maintenix/servlet/ScanBarcode?aBarcodeScan=";
 
     // Estados de avance de una tarea. El badge se muestra al principio del título.
     // "cerrado" equivale a done=true; el resto deja la tarea abierta con un estado.
@@ -9485,7 +9485,8 @@
     }
 
     async function handleTangoClick(tangoCode) {
-        try { await navigator.clipboard.writeText(tangoCode); window.open(MAINTENIX_URL, '_blank'); } 
+        const code = String(tangoCode || '').trim();
+        try { await navigator.clipboard.writeText(code); window.open(MAINTENIX_SCAN_URL + encodeURIComponent(code), '_blank'); } 
         catch (err) { console.error('ERROR AL COPIAR:', err); }
     }
     
