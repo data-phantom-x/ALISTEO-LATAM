@@ -9485,10 +9485,15 @@
     }
 
     async function handleTangoClick(tangoCode) {
-        try { await navigator.clipboard.writeText(tangoCode); window.open(MAINTENIX_URL, '_blank'); } 
-        catch (err) { console.error('ERROR AL COPIAR:', err); }
+    try { 
+        await navigator.clipboard.writeText(tangoCode); 
+        const urlDirecta = `https://maintenix.lan.com/maintenix/common/TaskDetails.jsp?barcode=${encodeURIComponent(tangoCode)}`;
+        window.open(urlDirecta, '_blank'); 
+    } 
+    catch (err) { 
+        console.error('ERROR AL COPIAR:', err); 
     }
-
+}
     function closeModal(modalId) {
         document.getElementById(modalId).style.display = 'none';
         // Si se cierra el panel de tarea compartida sin guardar, el share sigue pendiente.
