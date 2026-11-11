@@ -112,6 +112,8 @@
             --gradient-brand: linear-gradient(135deg, var(--primary), var(--primary-dark), var(--primary));
             --gradient-boot: linear-gradient(135deg, var(--primary-dark), var(--primary), var(--primary-dark));
             --print-font-size: 15px;
+            --header-line: linear-gradient(90deg, var(--primary), var(--accent));
+            --header-line-height: 2px;
         }
 
         body, input, select, button, textarea {
@@ -743,8 +745,8 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
+            height: var(--header-line-height);
+            background: var(--header-line);
             pointer-events: none;
         }
         
@@ -1511,6 +1513,10 @@
             box-shadow: 0 10px 30px color-mix(in srgb, var(--black) 28%, transparent); opacity: 0.95;
             border-radius: 12px 0 12px 0; overflow: hidden;
         }
+        .avion-section.drag-over-group {
+            outline: 2px dashed var(--accent); outline-offset: 2px;
+            background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+        }
 
         #toast {
             visibility: hidden; min-width: 250px; background-color: var(--primary); color: var(--surface);
@@ -1752,13 +1758,13 @@
             body { padding: 0 !important; background-color: var(--surface); font-size: var(--print-font-size); line-height: 1.15; }
             .container { padding: 0 3px 0 0 !important; box-shadow: none; max-width: 100%; }
             
-            .main-header-wrapper { flex-direction: row !important; text-align: center !important; gap: normal !important; padding: 6px 0 8px 0 !important; margin-bottom: 8px; min-height: 36px; background: linear-gradient(90deg, var(--primary), var(--accent), var(--cyan)) no-repeat bottom / 100% 3px !important; overflow: visible !important; }
+            .main-header-wrapper { flex-direction: row !important; text-align: center !important; gap: normal !important; padding: 6px 0 8px 0 !important; margin-bottom: 8px; min-height: 36px; background: var(--header-line) no-repeat bottom / 100% var(--header-line-height) !important; overflow: visible !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .main-header-wrapper::after { display: none !important; }
             .logo-container img { height: 28px !important; width: auto !important; }
             .logo-container { position: absolute !important; left: 0 !important; top: 50% !important; transform: translateY(-50%) !important; }
             .document-header { font-size: 1.1em; padding: 0 85px !important; } 
             
-            .avion-section { margin-bottom: 0.65em; box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .avion-section { margin-bottom: 0.65em; box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; page-break-inside: avoid; }
             .avion-title { 
                 background: var(--gradient-primary) !important; color: var(--surface) !important; 
                 padding: 0.42em 0.7em; border-bottom: 1px solid var(--border); gap: 0.4em !important;
@@ -2114,7 +2120,7 @@
             <div class="top-bar-actions">
                 <button type="button" id="btn-logout" class="btn-danger-outline" onclick="logoutFull()" style="width:28px; min-width:28px; padding:0; display:none; font-size:14px; flex:none;">✖</button>
                 <button type="button" id="top-install-btn" class="btn-outline no-print" onclick="instalarPwaTop()" title="Instalar ALISTEO" style="display:none; width:28px; min-width:28px; padding:0; font-size:14px; flex:none;">📲</button>
-                <button class="btn-outline" onclick="window.print()" title="Imprimir" style="width:28px; min-width:28px; padding:0; font-size:14px; flex:none;">🖨️</button>
+                <button class="btn-outline" onclick="abrirDialogoImpresion()" title="Imprimir" style="width:28px; min-width:28px; padding:0; font-size:14px; flex:none;">🖨️</button>
                 <button type="button" id="btn-admin" class="btn-outline" onclick="openAdminModal()" title="Administrar usuarios autorizados" style="display:none; padding:0 10px; font-size:10px;">⚙ ADMIN</button>
             </div>
         </div>
@@ -2202,6 +2208,7 @@
 
         <div id="leader-add-buttons" class="leader-add-buttons leader-only no-print">
             <button class="btn-leader" id="btn-add-avion" onclick="openAddAvionModal()" style="padding: 0 12px; font-size: 11px; border-radius: var(--button-radius); height: var(--button-height);">✈️<span class="btn-txt">AGREGAR AVIÓN</span></button>
+            <button class="btn-leader" id="btn-add-tech-view" onclick="openAddTaskModal(null, null)" style="padding: 0 12px; font-size: 11px; border-radius: var(--button-radius); height: var(--button-height); display:none;">➕<span class="btn-txt">AGREGAR TAREA</span></button>
             <button class="btn-accent" id="btn-add-activity" onclick="openAddActivityModal()" style="padding: 0 12px; font-size: 11px; border-radius: var(--button-radius); height: var(--button-height);">⭐<span class="btn-txt">AGREGAR ACTIVIDAD EXTRA</span></button>
             <button class="btn-accent" id="btn-add-message" onclick="openAddMessageModal()" style="padding: 0 12px; font-size: 11px; border-radius: var(--button-radius); height: var(--button-height);">💬<span class="btn-txt">AGREGAR MENSAJE</span></button>
             <button id="btn-compartidas" onclick="abrirModalCompartidas()" style="padding: 0 12px; font-size: 11px; border-radius: var(--button-radius); height: var(--button-height); display: none;">📥<span class="btn-txt" id="btn-compartidas-txt">TAREAS COMPARTIDAS</span></button>
@@ -2257,6 +2264,31 @@
         <div class="modal-footer" style="border:none; padding-top:0;">
             <button class="btn-outline btn-modal-action" onclick="closeConfirmModal()">CANCELAR</button>
             <button class="btn-leader btn-modal-action" id="confirm-yes-btn">CONFIRMAR</button>
+        </div>
+    </div>
+</div>
+
+<div id="print-dialog" class="modal">
+    <div class="modal-content" style="max-width: 320px;">
+        <div class="modal-header">🖨️ IMPRIMIR</div>
+        <div style="margin: 14px 0 18px; font-size: 12px; font-weight: bold; color: var(--primary); text-align: center;">¿EN CUÁNTAS PÁGINAS?</div>
+        <div class="modal-footer" style="border:none; padding-top:0; gap:8px;">
+            <button class="btn-outline btn-modal-action" onclick="cerrarDialogoImpresion()">CANCELAR</button>
+            <button class="btn-leader btn-modal-action" onclick="confirmarImpresion(1)">1 PÁGINA</button>
+            <button class="btn-leader btn-modal-action" onclick="confirmarImpresion(2)">2 PÁGINAS</button>
+        </div>
+    </div>
+</div>
+
+<div id="edit-group-techs-modal" class="modal">
+    <div class="modal-content" style="max-width: 420px;">
+        <div class="modal-header">✏️ EDITAR GRUPO</div>
+        <div id="edit-group-techs-title" style="margin-bottom: 10px; font-size: 12px; font-weight: bold; color: var(--primary); text-align: center;"></div>
+        <div style="font-size: 10px; font-weight: bold; color: var(--primary); margin-bottom: 6px;">TÉCNICOS DEL GRUPO:</div>
+        <div class="tech-grid" id="edit-group-techs-grid"></div>
+        <div class="modal-footer">
+            <button class="btn-outline btn-modal-action" onclick="closeModal('edit-group-techs-modal')">CANCELAR</button>
+            <button class="btn-leader btn-modal-action" onclick="saveEditGroupTechs()">GUARDAR</button>
         </div>
     </div>
 </div>
@@ -2499,18 +2531,27 @@
 <div id="add-task-modal" class="modal">
     <div class="modal-content">
         <div class="modal-header">📝 AGREGAR TAREA</div>
+        <div style="font-size: 10px; font-weight: bold; color: var(--primary); margin-bottom: 4px;">AVIÓN:</div>
+        <select id="add-task-avion" class="view-filter" style="width:100%; margin-bottom:8px;" onchange="toggleAddTaskAvionNuevo()">
+        </select>
+        <div id="add-task-avion-nuevo" style="display:none; margin-bottom:8px;">
+            <input type="text" id="add-task-avion-reg" placeholder="MATRÍCULA" style="margin-bottom:4px;">
+            <input type="text" id="add-task-avion-pos" placeholder="POSICIÓN" style="margin-bottom:4px;">
+            <div style="display:flex; gap:4px; margin-bottom:4px;">
+                <input type="text" id="add-task-avion-start" placeholder="INICIO" style="flex:1;">
+                <input type="text" id="add-task-avion-end" placeholder="FIN" style="flex:1;">
+            </div>
+            <input type="text" id="add-task-avion-wp" placeholder="WP (opcional)" style="margin-bottom:4px;">
+        </div>
         <input type="text" id="add-task-desc" placeholder="TÍTULO DE LA TAREA" oninput="handleTaskDescInput(this, 'add-task-tango')">
         <input type="text" id="add-task-tango" placeholder="T00..." maxlength="8" oninput="autoFormatTango(this)">
         
-        <div style="font-size: 10px; font-weight: bold; color: var(--primary); margin-bottom: 8px;">ASIGNAR TÉCNICOS:</div>
+        <div style="font-size: 10px; font-weight: bold; color: var(--primary); margin: 8px 0 4px;">ASIGNAR TÉCNICOS:</div>
         <div class="tech-grid" id="add-task-techs"></div>
         
         <input type="text" id="add-task-comment" placeholder="NOTA DE LA TAREA">
         
-        <!-- Un archivo entra por acá y no por un botón aparte en la cabecera del
-             avión: esta ventana ya es la de "agregar tareas a este avión", y el
-             archivo es una forma más de hacerlo (con lista y técnicos de golpe). -->
-        <div class="wp-sec" style="margin-bottom:6px;">O CARGAR VARIAS TAREAS DESDE MAINTENIX</div>
+        <div id="add-task-wp-sec" class="wp-sec" style="margin-bottom:6px;">O CARGAR VARIAS TAREAS DESDE MAINTENIX</div>
         <label class="wp-drop" id="wp-drop-tareas">
             <input type="file" id="wp-file-tareas" accept=".xlsx,.csv" onchange="wpArchivoElegido(this, 'avion')">
             <span class="wp-drop-ico">📂</span>
@@ -2528,6 +2569,9 @@
 <div id="predef-task-modal" class="modal">
     <div class="modal-content">
         <div class="modal-header">📑 TAREAS PREDEFINIDAS / PREVENTIVOS</div>
+        <div style="font-size: 10px; font-weight: bold; color: var(--primary); margin-bottom: 4px;">AVIÓN:</div>
+        <select id="predef-avion" class="view-filter" style="width:100%; margin-bottom:8px;" onchange="changePredefAvion()">
+        </select>
         
         <div style="font-size: 10px; font-weight: bold; color: var(--primary); margin-bottom: 8px;">CREAR NUEVA TAREA:</div>
         <div class="modal-row" style="margin-bottom: 5px;">
@@ -2869,6 +2913,11 @@
 <div id="manage-techs-modal" class="modal">
     <div class="modal-content">
         <div class="modal-header">📚 LIBRERÍA DE TÉCNICOS</div>
+        <div style="display:flex; gap:6px; margin-bottom:12px;">
+            <button id="tab-lib-btn" class="btn-leader" style="flex:1; font-size:10px;" onclick="switchManageTechsTab('libreria')">📋 LIBRERÍA</button>
+            <button id="tab-consulta-btn" class="btn-outline" style="flex:1; font-size:10px;" onclick="switchManageTechsTab('consulta')">🔎 CONSULTA POR TURNO</button>
+        </div>
+        <div id="tab-libreria">
         <div style="font-size:10px; color:var(--comment); margin-bottom:12px;">
             Técnicos del grupo seleccionado para este equipo. Puedes editar el nombre que viene del Sheet o agregar técnicos manuales.
         </div>
@@ -2886,6 +2935,34 @@
                 <div style="font-size:11px; font-weight:700; margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:4px;">📋 DETALLES DEL TÉCNICO</div>
                 <div id="global-tech-details-content" style="font-size:10px; color:var(--comment);">
                     SELECCIONA UN TÉCNICO DE LA LISTA PARA VER SUS DATOS.
+                </div>
+            </div>
+        </div>
+        </div>
+        <div id="tab-consulta" style="display:none;">
+            <div style="font-size:10px; color:var(--comment); margin-bottom:12px;">
+                Consulta qué técnicos estarán en uno o más códigos/grupos en la fecha seleccionada.
+            </div>
+            <div style="display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+                <div style="flex:0 0 260px; min-width:220px; display:flex; flex-direction:column; gap:10px;">
+                    <div>
+                        <div style="font-size:9px; font-weight:700; color:var(--text-muted); margin-bottom:3px;">FECHA</div>
+                        <input type="date" id="consulta-fecha" style="width:100%; font-size:10px; margin:0;" onchange="cargarConsultaTurno()">
+                    </div>
+                    <div>
+                        <div style="font-size:9px; font-weight:700; color:var(--text-muted); margin-bottom:3px;">GRUPOS (varios)</div>
+                        <div id="consulta-grupos-box" style="border:1px solid var(--border); border-radius:6px; padding:6px; max-height:200px; overflow-y:auto; background:var(--surface);"></div>
+                    </div>
+                    <div>
+                        <div style="font-size:9px; font-weight:700; color:var(--text-muted); margin-bottom:3px;">CÓDIGOS (varios)</div>
+                        <div id="consulta-codigos-box" style="border:1px solid var(--border); border-radius:6px; padding:6px; max-height:200px; overflow-y:auto; background:var(--surface);"></div>
+                    </div>
+                </div>
+                <div style="flex:1; min-width:200px;">
+                    <div style="font-size:9px; font-weight:700; color:var(--text-muted); margin-bottom:3px;">RESULTADOS</div>
+                    <div id="consulta-resultados" style="border:1px dashed var(--border); padding:8px; border-radius:6px; background:var(--bg); min-height:200px; max-height:400px; overflow-y:auto; font-size:10px;">
+                        SELECCIONA UNA FECHA Y UNO O MÁS CÓDIGOS.
+                    </div>
                 </div>
             </div>
         </div>
@@ -4459,6 +4536,173 @@
         return data;
     }
 
+    async function cargarTurnoTechEnFecha(bp, fecha) {
+        const el = document.getElementById('tech-rol-codigo');
+        if (!el) return;
+        if (!document.getElementById('tech-rol-spin-style')) {
+            const st = document.createElement('style');
+            st.id = 'tech-rol-spin-style';
+            st.textContent = '@keyframes techRolSpin { to { transform: rotate(360deg); } }';
+            document.head.appendChild(st);
+        }
+        el.innerHTML = '<span style="display:inline-block; width:12px; height:12px; border:2px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation: techRolSpin 0.8s linear infinite; vertical-align:middle; margin-right:4px;"></span>CARGANDO...';
+        const f = String(fecha || '').trim();
+        if (!f) { el.textContent = '—'; return; }
+        try {
+            const lista = await fetchRolSheetForDate(f, '');
+            const match = (lista || []).find(t => normalizeBp(t.bp) === normalizeBp(bp));
+            el.textContent = match ? (String(match.codigo || '').trim() || 'SIN CÓDIGO') : 'NO EN ROL';
+        } catch (e) {
+            console.error('ERROR CARGANDO TURNO DEL TÉCNICO:', e);
+            el.textContent = 'ERROR';
+        }
+    }
+
+    function switchManageTechsTab(tab) {
+        const lib = document.getElementById('tab-libreria');
+        const con = document.getElementById('tab-consulta');
+        const btnLib = document.getElementById('tab-lib-btn');
+        const btnCon = document.getElementById('tab-consulta-btn');
+        if (!lib || !con) return;
+        if (tab === 'libreria') {
+            lib.style.display = '';
+            con.style.display = 'none';
+            if (btnLib) btnLib.className = 'btn-leader';
+            if (btnCon) btnCon.className = 'btn-outline';
+        } else {
+            lib.style.display = 'none';
+            con.style.display = '';
+            if (btnLib) btnLib.className = 'btn-outline';
+            if (btnCon) btnCon.className = 'btn-leader';
+            const fechaInput = document.getElementById('consulta-fecha');
+            if (fechaInput && !fechaInput.value) fechaInput.value = viewingDate;
+            cargarConsultaTurno();
+        }
+    }
+
+    async function cargarConsultaTurno() {
+        const fechaInput = document.getElementById('consulta-fecha');
+        const gruposBox = document.getElementById('consulta-grupos-box');
+        const codigosBox = document.getElementById('consulta-codigos-box');
+        const res = document.getElementById('consulta-resultados');
+        if (!fechaInput || !gruposBox || !codigosBox || !res) return;
+        const fecha = String(fechaInput.value || '').trim();
+        if (!fecha) { res.textContent = 'SELECCIONA UNA FECHA.'; return; }
+        if (!document.getElementById('tech-rol-spin-style')) {
+            const st = document.createElement('style');
+            st.id = 'tech-rol-spin-style';
+            st.textContent = '@keyframes techRolSpin { to { transform: rotate(360deg); } }';
+            document.head.appendChild(st);
+        }
+        res.innerHTML = '<span style="display:inline-block; width:12px; height:12px; border:2px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation: techRolSpin 0.8s linear infinite; vertical-align:middle; margin-right:4px;"></span>CARGANDO...';
+        try {
+            const lista = await fetchRolSheetForDate(fecha, '');
+            // Grupos del equipo actual (para preseleccionar)
+            const teamGroups = (configGruposPorEquipo[sanitizeTeamId(currentTeam)] || []).map(g => String(g).trim().toUpperCase()).filter(Boolean);
+
+            // Preservar selección previa
+            const prevGrupos = Array.from(gruposBox.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            const prevCodigos = Array.from(codigosBox.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+
+            const gruposUnicos = [...new Set((lista || []).map(t => String(t.grupo || '').trim()).filter(Boolean))].sort();
+            const codigosUnicos = [...new Set((lista || []).map(t => String(t.codigo || '').trim()).filter(Boolean))].sort(compararCodigosTurno);
+
+            // Poblar grupos (preseleccionar grupos del equipo si no hay selección previa)
+            const gruposToSelect = prevGrupos.length ? prevGrupos : teamGroups;
+            gruposBox.innerHTML = gruposUnicos.map(g => {
+                const checked = gruposToSelect.includes(String(g).trim().toUpperCase()) ? 'checked' : '';
+                return `<label style="display:flex; align-items:center; gap:6px; padding:2px 0; cursor:pointer; font-size:10px;">
+                    <input type="checkbox" value="${escapeAttr(g)}" ${checked} onchange="cargarConsultaTurnoResultados()"> ${escapeHtml(g)}
+                </label>`;
+            }).join('') || '<div style="color:var(--text-muted);">SIN GRUPOS</div>';
+
+            // Poblar códigos (preservar selección previa)
+            codigosBox.innerHTML = codigosUnicos.map(c => {
+                const checked = prevCodigos.includes(c) ? 'checked' : '';
+                return `<label style="display:flex; align-items:center; gap:6px; padding:2px 0; cursor:pointer; font-size:10px;">
+                    <input type="checkbox" value="${escapeAttr(c)}" ${checked} onchange="cargarConsultaTurnoResultados()"> ${escapeHtml(c)}
+                </label>`;
+            }).join('') || '<div style="color:var(--text-muted);">SIN CÓDIGOS</div>';
+
+            // Guardar lista en cache para filtrar sin re-fetch
+            window.__consultaLista = lista;
+            cargarConsultaTurnoResultados();
+        } catch (e) {
+            console.error('ERROR EN CONSULTA POR TURNO:', e);
+            res.textContent = 'ERROR AL CARGAR.';
+        }
+    }
+
+    function cargarConsultaTurnoResultados() {
+        const gruposBox = document.getElementById('consulta-grupos-box');
+        const codigosBox = document.getElementById('consulta-codigos-box');
+        const res = document.getElementById('consulta-resultados');
+        if (!gruposBox || !codigosBox || !res) return;
+        const lista = window.__consultaLista || [];
+        const selGrupos = Array.from(gruposBox.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+        const selCodigos = Array.from(codigosBox.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+
+        if (!selCodigos.length) {
+            res.textContent = 'SELECCIONA UNO O MÁS CÓDIGOS.';
+            return;
+        }
+        let filtrados = (lista || []).filter(t => selCodigos.includes(String(t.codigo || '').trim()));
+        if (selGrupos.length) filtrados = filtrados.filter(t => selGrupos.includes(String(t.grupo || '').trim()));
+        if (!filtrados.length) {
+            res.innerHTML = '<div style="color:var(--text-muted);">NO HAY TÉCNICOS CON ESE CÓDIGO EN ESTA FECHA.</div>';
+            return;
+        }
+        // Ordenar por código y luego por nombre
+        filtrados.sort((a, b) => {
+            const ca = String(a.codigo || '').trim();
+            const cb = String(b.codigo || '').trim();
+            const cmp = compararCodigosTurno(ca, cb);
+            if (cmp !== 0) return cmp;
+            const na = (libreriaTecnicos[a.bp] && libreriaTecnicos[a.bp].nombre) || a.nombre || '';
+            const nb = (libreriaTecnicos[b.bp] && libreriaTecnicos[b.bp].nombre) || b.nombre || '';
+            return String(na).localeCompare(String(nb));
+        });
+        // Totales por código
+        const totalesPorCodigo = {};
+        filtrados.forEach(t => {
+            const c = String(t.codigo || '').trim();
+            totalesPorCodigo[c] = (totalesPorCodigo[c] || 0) + 1;
+        });
+        const totalesHtml = Object.keys(totalesPorCodigo).sort(compararCodigosTurno).map(c =>
+            `<span style="display:inline-block; margin-left:8px; padding:2px 6px; border-radius:4px; background:var(--surface-lavender); color:var(--primary); font-weight:700;">${escapeHtml(c)}: ${totalesPorCodigo[c]}</span>`
+        ).join('');
+        const header = `<div style="display:flex; align-items:center; flex-wrap:wrap; margin-bottom:8px; padding-bottom:4px; border-bottom:2px solid var(--border);">
+            <span style="font-weight:800;">TOTAL ENCONTRADOS: ${filtrados.length}</span>
+            ${totalesHtml}
+        </div>`;
+        // Agrupar por código para poner un separador entre grupos
+        const grupos = [];
+        let codigoActual = null;
+        filtrados.forEach(t => {
+            const codigo = String(t.codigo || '').trim();
+            if (codigo !== codigoActual) {
+                grupos.push({ codigo, items: [] });
+                codigoActual = codigo;
+            }
+            grupos[grupos.length - 1].items.push(t);
+        });
+        let rows = '';
+        grupos.forEach((g, gi) => {
+            if (gi > 0) {
+                rows += `<div style="height:8px; border-top:1px solid var(--border); margin:6px 0 4px 0;"></div>`;
+            }
+            g.items.forEach((t, idx) => {
+                const esUltimo = idx === g.items.length - 1;
+                const nombre = (libreriaTecnicos[t.bp] && libreriaTecnicos[t.bp].nombre) || t.nombre;
+                rows += `<div style="padding:4px 0; ${esUltimo ? '' : 'border-bottom:1px solid var(--border-subtle);'} display:flex; justify-content:space-between; gap:8px;">
+                    <span style="font-weight:700;">${escapeHtml(nombre)}</span>
+                    <span style="color:var(--text-muted);">${escapeHtml(t.codigo)} · BP ${escapeHtml(t.bp)} · ${escapeHtml(t.grupo || '—')}${t.skill ? ' · ' + escapeHtml(t.skill) : ''}${t.nivel ? ' ' + escapeHtml(t.nivel) : ''}</span>
+                </div>`;
+            });
+        });
+        res.innerHTML = header + rows;
+    }
+
     // Cache de técnicos del rol del DÍA que se está viendo, para el cuadro de
     // agregar técnicos: las sugerencias son de TODO EL EQUIPO (los tres turnos),
     // no solo del turno actual. Usa el MISMO endpoint del Sheet que la
@@ -4481,19 +4725,87 @@
         }
         setAddTechLoading(true);
         try {
-            // Los tres turnos del día en paralelo; si uno falla, se sigue con los demás.
-            const listas = await Promise.all(TURNOS_DEL_DIA.map(t =>
+            // Todos los técnicos del rol del día (con su código diario: LI, TS, 9H07, etc.)
+            // más los tres turnos (para saber en qué turno trabaja cada uno).
+            const todosPromise = fetchRolSheetForDate(viewingDate, '').catch(e => {
+                console.warn('No se pudo leer el rol del día para las sugerencias:', e);
+                return [];
+            });
+            const turnosPromises = TURNOS_DEL_DIA.map(t =>
                 fetchRolSheetForDate(viewingDate, t).catch(e => {
                     console.warn('No se pudo leer el rol de ' + t + ' para las sugerencias:', e);
                     return [];
                 })
-            ));
-            // Un técnico puede salir en más de un turno: se deduplica por BP (o nombre).
+            );
+            const [todos, ...listas] = await Promise.all([todosPromise, ...turnosPromises]);
+
+            // Código diario por BP (LI, LM, TS, 9H07, etc.) tomado del rol.
+            const codigoDiaPorBp = new Map();
+            (todos || []).forEach(t => {
+                const bp = normalizeBp(t.bp);
+                if (bp) codigoDiaPorBp.set(bp, String(t.codigo || '').trim() || null);
+            });
+
+            // Turnos en los que aparece cada técnico.
+            const turnosPorClave = new Map();
+            listas.forEach((lista, idx) => {
+                const turno = TURNOS_DEL_DIA[idx];
+                (lista || []).forEach(t => {
+                    const clave = normalizeBp(t.bp) || String(t.nombre || '').trim().toUpperCase();
+                    if (!clave) return;
+                    if (!turnosPorClave.has(clave)) turnosPorClave.set(clave, []);
+                    if (!turnosPorClave.get(clave).includes(turno)) turnosPorClave.get(clave).push(turno);
+                });
+            });
+
+            // Un técnico puede salir en más de un turno: se agregan los turnos
+            // (no se pierde en qué turno trabaja, para mostrarlo en la sugerencia).
             const vistos = new Map();
-            listas.forEach(lista => (lista || []).forEach(t => {
-                const clave = normalizeBp(t.bp) || String(t.nombre || '').trim().toUpperCase();
-                if (clave && !vistos.has(clave)) vistos.set(clave, t);
-            }));
+            // Base: todos los técnicos del rol con su código diario.
+            (todos || []).forEach(t => {
+                const bp = normalizeBp(t.bp);
+                const clave = bp || String(t.nombre || '').trim().toUpperCase();
+                if (!clave) return;
+                if (!vistos.has(clave)) {
+                    vistos.set(clave, {
+                        ...t,
+                        codigo: String(t.codigo || '').trim() || codigoDiaPorBp.get(bp) || null,
+                        turnos: turnosPorClave.get(clave) ? turnosPorClave.get(clave).slice() : [],
+                        grupos: [String(t.grupo || '').trim()].filter(Boolean)
+                    });
+                } else {
+                    const prev = vistos.get(clave);
+                    if (!prev.codigo) prev.codigo = String(t.codigo || '').trim() || codigoDiaPorBp.get(bp) || null;
+                    const turnos = turnosPorClave.get(clave) || [];
+                    turnos.forEach(turno => { if (!prev.turnos.includes(turno)) prev.turnos.push(turno); });
+                    const g = String(t.grupo || '').trim();
+                    if (g && !prev.grupos.includes(g)) prev.grupos.push(g);
+                }
+            });
+            // Complemento: los que aparecen solo en algún turno (por si la llamada "todos" falló).
+            listas.forEach((lista, idx) => {
+                const turno = TURNOS_DEL_DIA[idx];
+                (lista || []).forEach(t => {
+                    const bp = normalizeBp(t.bp);
+                    const clave = bp || String(t.nombre || '').trim().toUpperCase();
+                    if (!clave) return;
+                    if (!vistos.has(clave)) {
+                        vistos.set(clave, {
+                            ...t,
+                            codigo: codigoDiaPorBp.get(bp) || String(t.codigo || '').trim() || null,
+                            turnos: [turno],
+                            grupos: [String(t.grupo || '').trim()].filter(Boolean)
+                        });
+                    } else {
+                        const prev = vistos.get(clave);
+                        if (!prev.turnos.includes(turno)) prev.turnos.push(turno);
+                        const g = String(t.grupo || '').trim();
+                        if (g && !prev.grupos.includes(g)) prev.grupos.push(g);
+                        if (!prev.codigo) prev.codigo = codigoDiaPorBp.get(bp) || String(t.codigo || '').trim() || null;
+                    }
+                });
+            });
+
             addTechDiaCache = { date: viewingDate, techs: Array.from(vistos.values()), ts: now };
         } finally {
             setAddTechLoading(false);
@@ -4512,28 +4824,47 @@
         // Manuales primero
         (globalTechs || []).forEach(nombre => {
             const n = String(nombre || '').trim().toUpperCase();
-            if (n) map.set(n, { nombre: n, bp: null, codigo: null, fuente: 'manual' });
+            if (n) map.set(n, { nombre: n, bp: null, codigo: null, turnos: [], fuente: 'manual' });
         });
-        // Del rol del día que se está viendo (los tres turnos), solo de los
-        // grupos del equipo (los mismos de la librería y del botón ROL). Si con
-        // el filtro no queda NADIE (los grupos configurados no calzan con los del
-        // Sheet), se dejan todos: mejor sobrar en sugerencias que no dar ninguna.
+        // Del rol del día (los tres turnos): solo los del equipo (grupos configurados).
+        // Se incluyen todos los del equipo, incluso los libres o en otro turno.
         const grupos = (configGruposPorEquipo[sanitizeTeamId(currentTeam)] || [])
             .map(g => String(g).trim().toUpperCase()).filter(Boolean);
         let lista = (addTechDiaCache.date === viewingDate) ? addTechDiaCache.techs : [];
         if (grupos.length) {
             const filtrados = lista.filter(t => grupos.indexOf(String(t.grupo || '').trim().toUpperCase()) !== -1);
             if (filtrados.length) lista = filtrados;
-            else console.warn('Sugerencias: ningún técnico del Sheet coincide con los grupos configurados para el equipo', grupos);
         }
+        const teamBps = new Set();
+        const teamNames = new Set();
         lista.forEach(t => {
             const bp = normalizeBp(t.bp);
             const nombre = resolveSheetTechName(bp, t.nombre);
             if (!nombre || map.has(nombre)) return;
+            if (bp) teamBps.add(bp);
+            teamNames.add(nombre);
             map.set(nombre, {
                 nombre, bp: bp || null,
                 codigo: String(t.codigo || '').trim() || null,
+                grupos: Array.isArray(t.grupos) ? t.grupos.slice() : (t.grupo ? [String(t.grupo).trim()] : []),
+                turnos: Array.isArray(t.turnos) ? t.turnos.slice() : [],
                 fuente: 'sheet'
+            });
+        });
+        // De la librería global: incluye a los que están libres o en otro turno.
+        // Se incluyen todos los de la librería para que el usuario vea a los libres
+        // (no se puede determinar el equipo de un técnico de la librería, ya que
+        // no tiene grupo; si se filtra por equipo se ocultan los libres).
+        Object.keys(libreriaTecnicos || {}).forEach(bp => {
+            const info = libreriaTecnicos[bp] || {};
+            const nombre = String(info.nombre || '').trim().toUpperCase();
+            if (!nombre || map.has(nombre)) return;
+            map.set(nombre, {
+                nombre, bp: normalizeBp(bp) || null,
+                codigo: String(info.codigo || '').trim() || null,
+                grupos: Array.isArray(info.grupos) ? info.grupos.slice() : (info.grupo ? [String(info.grupo).trim()] : []),
+                turnos: [],
+                fuente: 'libreria'
             });
         });
         return Array.from(map.values()).sort((a, b) => a.nombre.localeCompare(b.nombre));
@@ -4546,7 +4877,7 @@
         const techs = getAvailableTechs();
         datalist.innerHTML = techs.map(t => {
             const detalle = [t.codigo, t.bp ? 'BP ' + t.bp : ''].filter(Boolean).join(' · ');
-            return `<option value="${escapeAttr(t.nombre)}">${escapeAttr(t.nombre)}${detalle ? ' · ' + escapeAttr(detalle) : ''}</option>`;
+            return `<option value="${escapeAttr(t.nombre)}">${escapeAttr(detalle)}</option>`;
         }).join('');
     }
 
@@ -4700,7 +5031,9 @@
         ver('panel-team-row', esVistaTodos && equiposGestionables().length >= 1);
         ver('leader-field-jefe', hayEquipo && puedeLiderarEn(ed));
         ver('leader-field-techs', hayEquipo && puedeCargarTecnicosEn(ed));
-        ver('btn-add-avion', esVistaTodos ? puedePanelEnTodos() : puedePlanificar());
+        const ocultarAvion = currentViewMode === 'tech' || currentViewMode === 'tech-group';
+ver('btn-add-avion', !ocultarAvion && (esVistaTodos ? puedePanelEnTodos() : puedePlanificar()));
+ver('btn-add-tech-view', ocultarAvion && (esVistaTodos ? puedePanelEnTodos() : puedeCargarTecnicos()));
         ver('btn-add-activity', hayEquipo && puedeLiderarEn(ed));
         ver('btn-add-message', hayEquipo && puedeLiderarEn(ed));
         const pills = document.getElementById('tech-pills-container');
@@ -7264,6 +7597,8 @@
                 avionesData = valor || [];
             } else if (campo === 'techs') {
                 shiftTechs = normalizeTechs(valor || []);
+                // Actualizar códigos de rol desde el rol del día (sin bloquear la UI)
+                actualizarCodigosRolEnTurno();
             } else {
                 aplicarHeaderEquipo(team, valor || {});
                 return;
@@ -8685,7 +9020,15 @@
                 <div style="margin-bottom:6px;"><b>ÁREA:</b> ${escapeHtml(data.area || '—')}</div>
                 <div style="margin-bottom:6px;"><b>LICENCIA:</b> ${escapeHtml(data.licencia || '—')}</div>
                 ${vencHtml}
+                <div style="margin-top:8px; border-top:1px solid var(--border); padding-top:6px;">
+                    <b>TURNO EN EL ROL:</b>
+                    <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
+                        <input type="date" id="tech-rol-fecha" value="${escapeAttr(viewingDate)}" style="flex:1; font-size:10px; margin:0;" onchange="cargarTurnoTechEnFecha('${escapeJsString(t.bp)}', this.value)">
+                        <span id="tech-rol-codigo" style="font-weight:700; color:var(--primary); min-width:60px; text-align:right;">—</span>
+                    </div>
+                </div>
             `;
+            cargarTurnoTechEnFecha(t.bp, viewingDate);
         }).catch(e => {
             console.error('ERROR CARGANDO DETALLES DEL TÉCNICO:', e);
             content.innerHTML = `<div style="color:var(--danger);">ERROR AL CARGAR DATOS:<br>${escapeHtml(e.message || e)}</div>`;
@@ -8900,6 +9243,10 @@
         selectedGlobalTech = null;
         const content = document.getElementById('global-tech-details-content');
         if (content) content.innerHTML = '<div style="font-size:10px; color:var(--comment);">SELECCIONA UN TÉCNICO DE LA LISTA PARA VER SUS DATOS.</div>';
+        // Reiniciar pestañas y fecha de consulta
+        switchManageTechsTab('libreria');
+        const fechaConsulta = document.getElementById('consulta-fecha');
+        if (fechaConsulta && !fechaConsulta.value) fechaConsulta.value = viewingDate;
         await loadGlobalTechDetails();
         updateGlobalTechsUI();
     }
@@ -9002,6 +9349,27 @@
             rolSheetCache = data;
             rolSheetCacheMonth = viewingDate.slice(0, 7);
 
+            // Actualizar el código de rol de TODOS los técnicos del turno según el
+            // rol del día (incluye los que cambiaron de turno o quedaron libres),
+            // para que las pastillas reflejen la data actual del rol.
+            try {
+                const todosDelDia = await fetchRolSheetForDate(viewingDate, '');
+                const codigoPorBp = new Map();
+                (todosDelDia || []).forEach(t => {
+                    const bp = normalizeBp(t.bp);
+                    if (bp) codigoPorBp.set(bp, String(t.codigo || '').trim() || null);
+                });
+                shiftTechs.forEach(t => {
+                    const bp = techBp(t);
+                    if (bp && codigoPorBp.has(bp)) {
+                        const nuevo = codigoPorBp.get(bp);
+                        if (nuevo) t.codigo = nuevo;
+                    }
+                });
+            } catch (e) {
+                console.warn('No se pudo actualizar códigos del rol:', e);
+            }
+
             // Agregar técnicos manuales cuyo turno coincida
             (globalTechs || []).forEach(nombre => {
                 const t = globalTechTurnos && globalTechTurnos[sanitizeKey(nombre)];
@@ -9017,6 +9385,7 @@
                 return;
             }
             shiftTechs.sort((a, b) => techNombre(a).localeCompare(techNombre(b)));
+            renderTechPills();
             const techsPath = getBasePath() + '/techs';
             await dbSet(ref(db, techsPath), shiftTechs, 'SINCRONIZAR TÉCNICOS CON ROL');
             showToast(`✅ SE AGREGARON ${added.length} TÉCNICO(S) (ROL + MANUALES)`);
@@ -9261,6 +9630,10 @@
     // Orden de las pastillas de código: primero por la hora de inicio (06 antes
     // que 08) y, a la misma hora, por la jornada (8h antes que 9h):
     // 8H06, 9H06, 8H08, 9H08... Lo que no sigue ese formato va al final.
+    // Formato del código de turno: "<horas>H<hora_entrada>".
+    // Ej: "8H08" = 8 horas de trabajo a partir de las 08:00.
+    // El orden es por HORA DE ENTRADA (lo que viene después de la H), no por
+    // la cantidad de horas. Así 8H06 y 9H06 (entrada 06:00) van antes que 8H08.
     function compararCodigosTurno(a, b) {
         const pa = /^(\d+)H(\d+)$/i.exec(a);
         const pb = /^(\d+)H(\d+)$/i.exec(b);
@@ -9300,7 +9673,7 @@
                 btn.className = 'code-filter-pill' + (activeCodeFilter === code ? ' active' : '');
                 const label = code === 'SIN CÓDIGO' ? String(codeCounts[code]) : `${code} (${codeCounts[code]})`;
                 btn.textContent = label;
-                btn.title = code === 'SIN CÓDIGO' ? 'SIN CÓDIGO' : `CÓDIGO ${code}`;
+                btn.title = code === 'SIN CÓDIGO' ? 'SIN CÓDIGO' : `CÓDIGO ROL: ${code}`;
                 btn.onclick = () => setCodeFilter(code);
                 container.appendChild(btn);
             });
@@ -9318,15 +9691,16 @@
             const bp = techBp(tech);
             const idle = !assigned.has(nombre);
             const pill = document.createElement('div'); pill.className = 'tech-pill' + (idle ? ' tech-idle' : '');
-            if (idle) pill.title = `${nombre} · SIN TAREAS ASIGNADAS EN ESTE TURNO`;
-            if (code) pill.title = (pill.title ? pill.title + ' · ' : '') + `CÓDIGO ROL: ${code}`;
-            if (bp) pill.title = (pill.title ? pill.title + ' · ' : '') + `BP: ${bp}`;
+            const titleParts = [];
+            if (code) titleParts.push(code);
+            if (bp) titleParts.push('BP: ' + bp);
+            if (idle) titleParts.push('SIN TAREAS ASIGNADAS EN ESTE TURNO');
+            pill.title = titleParts.join(' · ');
 
             const nameSpan = document.createElement('span');
             nameSpan.className = 'tech-name';
             nameSpan.textContent = nombre;
             nameSpan.style.cursor = 'pointer';
-            nameSpan.title = 'Ver detalles del técnico';
             nameSpan.addEventListener('click', () => showTechDetailsFromPanel(nombre));
 
             const removeSpan = document.createElement('span');
@@ -9341,7 +9715,30 @@
         });
     }
 
-    async function showTechDetailsFromPanel(techName) {
+    async function actualizarCodigosRolEnTurno() {
+    if (!currentTeam || vistaTodos) return;
+    try {
+        const todos = await fetchRolSheetForDate(viewingDate, '');
+        const codigoPorBp = new Map();
+        (todos || []).forEach(t => {
+            const bp = normalizeBp(t.bp);
+            if (bp) codigoPorBp.set(bp, String(t.codigo || '').trim() || null);
+        });
+        let changed = false;
+        (shiftTechs || []).forEach(t => {
+            const bp = techBp(t);
+            if (bp && codigoPorBp.has(bp)) {
+                const nuevo = codigoPorBp.get(bp);
+                if (nuevo && nuevo !== techCodigo(t)) { t.codigo = nuevo; changed = true; }
+            }
+        });
+        if (changed) renderTechPills();
+    } catch (e) {
+        // silencioso: no bloquear la UI si falla el rol
+    }
+}
+
+async function showTechDetailsFromPanel(techName) {
         await openManageTechsModal();
         showGlobalTechDetails(techName);
     }
@@ -9366,6 +9763,7 @@
     function changeViewMode() {
         currentViewMode = document.getElementById('view-mode-select').value;
         updateViewActionsUI();
+        aplicarPoderesUI();
         render();
     }
 
@@ -9384,6 +9782,7 @@
         currentViewMode = 'default';
         document.getElementById('view-mode-select').value = 'default';
         updateViewActionsUI();
+        aplicarPoderesUI();
         render();
     }
 
@@ -9497,7 +9896,7 @@
     }
 
     // C3 FIX: Todo texto de usuario escapado - antes un <script> en la descripción se ejecutaba en todos
-    function generateTaskHTML(avion, t, showPlaneReg = false, showHandle = false) {
+    function generateTaskHTML(avion, t, showPlaneReg = false, showHandle = false, showTechs = true) {
         let cleanDesc = escapeHtml(t.desc || ''); let tangoDisplay = '';
         if (t.tango) {
             const escapedTango = t.tango.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -9539,7 +9938,7 @@
         }
 
         const handleHtml = showHandle
-            ? `<span class="drag-handle leader-only no-print" onpointerdown="startOrderDrag(event, 'tarea', ${Number(avion.id)}, ${Number(t.id)})" oncontextmenu="event.preventDefault(); return false;" title="Sostener y arrastrar para ordenar">⋮⋮</span>`
+            ? `<span class="drag-handle leader-only no-print" onpointerdown="startOrderDrag(event, 'tarea', ${Number(avion.id)}, ${Number(t.id)})" oncontextmenu="event.preventDefault(); return false;" title="Arrastrar para reasignar u ordenar">⋮⋮</span>`
             : '';
 
         // Distintivo de tarea compartida: solo tiene sentido para quien la mandó.
@@ -9559,7 +9958,7 @@
                 <div class="task-main">
                     <div class="task-info">
                         <div class="task-desc">${statusBadge}${planePrefix}${activityTime}${cleanDesc}${tangoDisplay} ${atencionLabel}${shareBadgeHtml}</div>
-                        ${t.techs ? `<div class="task-techs">${escapeHtml(t.techs)}</div>` : ''}
+                        ${t.techs && showTechs ? `<div class="task-techs">${escapeHtml(t.techs)}</div>` : ''}
                         ${t.comment ? `<div class="task-comment"><strong>NOTA:</strong> ${escapeHtml(t.comment)}</div>` : ''}
                         ${statusComment}
                     </div>
@@ -9587,30 +9986,42 @@
     function renderGruposVacios(container) {
         const emptyDiv = document.createElement('div');
         emptyDiv.className = 'avion-section';
-        emptyDiv.innerHTML = `<div class="avion-title"><div class="avion-info-main">ℹ️ NO HAY TAREAS PARA AGRUPAR</div></div>`;
+        const puedeAdd = vistaTodos ? puedePanelEnTodos() : (puedePlanificar() && shiftState.estado !== 'cerrado');
+        const btnTarea = puedeAdd
+            ? `<button class="avion-btn" onclick="openAddTaskModal(null, '')" style="margin-left:8px;">➕ AGREGAR TAREA</button>`
+            : '';
+        emptyDiv.innerHTML = `<div class="avion-title"><div class="avion-info-main">ℹ️ NO HAY TAREAS PARA AGRUPAR</div><div class="avion-actions no-print">${btnTarea}</div></div>`;
         container.appendChild(emptyDiv);
     }
 
     // Un bloque por técnico (o por grupo de técnicos): pendientes primero y las
     // completadas después. Lo comparten las dos vistas agrupadas.
-    function renderGrupoSeccion(container, icono, titulo, tasks) {
+    function renderGrupoSeccion(container, icono, titulo, tasks, allowOrder) {
         const div = document.createElement('div');
         div.className = 'avion-section';
+        div.dataset.groupTitle = titulo;
+        const puedeAdd = vistaTodos ? puedePanelEnTodos() : (puedePlanificar() && shiftState.estado !== 'cerrado');
+        const showEdit = currentViewMode === 'tech-group' && puedeAdd;
+        const showPredef = (currentViewMode === 'tech' || currentViewMode === 'tech-group') && puedeAdd;
+        const addBtn = puedeAdd
+            ? `<div class="avion-actions no-print"><button class="avion-btn" onclick="openAddTaskModal(null, '${escapeJsString(titulo)}')">➕ TAREA</button>${showPredef ? `<button class="avion-btn" onclick="openPredefModal(null)" title="Agregar Tareas Predefinidas / Preventivas">📑 PREDEF.</button>` : ''}${showEdit ? `<button class="avion-btn" onclick="openEditGroupTechs('${escapeJsString(titulo)}')">✏️ EDITAR</button>` : ''}</div>`
+            : '';
         let html = `
             <div class="avion-title" style="background: var(--leader-color);">
                 <div class="avion-info-main">${icono} ${escapeHtml(titulo)} (${tasks.length})</div>
+                ${addBtn}
             </div>
             <div class="task-container">
         `;
         ordenarStartPrimero(tasks.filter(x => !x.task.done), x => x.task.estado)
             .concat(tasks.filter(x => x.task.done))
-            .forEach(({avion, task}) => { html += generateTaskHTML(avion, task, true); });
+            .forEach(({avion, task}) => { html += generateTaskHTML(avion, task, true, allowOrder, currentViewMode !== 'tech-group'); });
         html += `</div>`;
         div.innerHTML = html;
         container.appendChild(div);
     }
 
-    function renderGroupedByTech(data, container) {
+    function renderGroupedByTech(data, container, allowOrder) {
         let grouped = {};
         listaTechsAMostrar().forEach(tech => grouped[tech] = []);
         grouped["SIN ASIGNAR"] = [];
@@ -9639,7 +10050,7 @@
 
         for (const [tech, tasks] of Object.entries(grouped)) {
             if (tasks.length === 0) continue;
-            renderGrupoSeccion(container, '👨‍🔧', tech, tasks);
+            renderGrupoSeccion(container, '👨‍🔧', tech, tasks, allowOrder);
         }
     }
 
@@ -9650,7 +10061,7 @@
         return parts.sort().join(' - ');
     }
 
-    function renderGroupedByExactTechs(data, container) {
+    function renderGroupedByExactTechs(data, container, allowOrder) {
         let grouped = {};
 
         data.forEach(avion => {
@@ -9677,7 +10088,7 @@
         keys.forEach(group => {
             const tasks = grouped[group];
             if (tasks.length === 0) return;
-            renderGrupoSeccion(container, '👥', group, tasks);
+            renderGrupoSeccion(container, '👥', group, tasks, allowOrder);
         });
     }
 
@@ -9689,7 +10100,7 @@
         try {
             const fragment = document.createDocumentFragment();
             let displayData = JSON.parse(JSON.stringify(listaAMostrar()));
-            const allowOrder = puedePlanificar() && shiftState.estado !== 'cerrado' && !vistaTodos && currentViewMode === 'default' && !currentTechFilter;
+            const allowOrder = puedePlanificar() && shiftState.estado !== 'cerrado' && !vistaTodos && (currentViewMode === 'default' || currentViewMode === 'tech' || currentViewMode === 'tech-group') && !currentTechFilter;
 
             if (currentTechFilter) {
                 displayData.forEach(avion => {
@@ -9723,12 +10134,12 @@
             });
 
             if (currentViewMode === 'tech') {
-                renderGroupedByTech(displayData, container);
+                renderGroupedByTech(displayData, container, allowOrder);
                 return;
             }
 
             if (currentViewMode === 'tech-group') {
-                renderGroupedByExactTechs(displayData, container);
+                renderGroupedByExactTechs(displayData, container, allowOrder);
                 return;
             }
 
@@ -10118,6 +10529,12 @@
         document.getElementById('add-ac-pos').value = ''; document.getElementById('add-ac-start').value = '';
         document.getElementById('add-ac-end').value = ''; document.getElementById('add-ac-comment').value = '';
         document.getElementById('add-avion-modal').style.display = 'block';
+    }
+    function focusAddTechInput() {
+        const input = document.getElementById('in-new-tech');
+        if (!input) return;
+        try { input.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+        setTimeout(() => { try { input.focus(); } catch (e) {} }, 50);
     }
 
     function saveAddAvion() {
@@ -11633,6 +12050,7 @@
     // que decide el receptor es a qué técnicos se asigna. El share sigue PENDIENTE
     // hasta que se guarda: si se cancela, no queda nada a medias.
     let addTaskLock = null;
+let editGroupTechsTitle = null;
     function abrirPanelTareaCompartida(share, avionId, nuevoWp) {
         const tarea = share.tarea || {};
         addTaskLock = {
@@ -11666,25 +12084,140 @@
         const header = document.querySelector('#add-task-modal .modal-header');
         if (header) header.textContent = '📝 AGREGAR TAREA';
     }
-    function openAddTaskModal(avionId) {
+    function openAddTaskModal(avionId, preTech) {
         if(checkLock()) return;
         seguroCompartidas(limpiarAddTaskLock);
-        editCurrentAvionId = avionId;
-        const avion = avionEditable(avionId); if (!avion) return;
+        let avion = null;
+        if (avionId) {
+            avion = avionEditable(avionId);
+            if (!avion) return;
+        }
+        populateAddTaskAvionSelect(avion ? avion.id : null);
+        if (!avion) {
+            const lista = listaAMostrar();
+            const first = (lista || []).find(a => !a.isActivity) || (lista || [])[0];
+            if (first) {
+                const sel = document.getElementById('add-task-avion');
+                if (sel) sel.value = String(first.id);
+            }
+        }
+        const sel = document.getElementById('add-task-avion');
+        if (sel && sel.value === '__new__') {
+            document.getElementById('add-task-avion-nuevo').style.display = 'block';
+        } else {
+            document.getElementById('add-task-avion-nuevo').style.display = 'none';
+        }
+        toggleAddTaskWpSec();
+        const currentAvionId = sel ? (sel.value === '__new__' ? null : Number(sel.value)) : null;
+        let avionObj = currentAvionId ? avionEditable(currentAvionId) : null;
+        if (avionObj) {
+            editCurrentAvionId = avionObj.id;
+        }
         document.getElementById('add-task-desc').value = ''; document.getElementById('add-task-tango').value = '';
-        document.getElementById('add-task-tango').style.display = avion?.isActivity ? 'none' : 'block';
+        document.getElementById('add-task-tango').style.display = (avionObj && avionObj.isActivity) ? 'none' : 'block';
         document.getElementById('add-task-comment').value = '';
-        buildTechGrid('add-task-techs', ""); document.getElementById('add-task-modal').style.display = 'block';
+        buildTechGrid('add-task-techs', preTech ? String(preTech) : "");
+        document.getElementById('add-task-modal').style.display = 'block';
+    }
+function openEditGroupTechs(groupTitle) {
+        if (checkLock()) return;
+        editGroupTechsTitle = groupTitle;
+        const titleEl = document.getElementById('edit-group-techs-title');
+        if (titleEl) titleEl.textContent = groupTitle;
+        buildTechGrid('edit-group-techs-grid', groupTitle === 'SIN ASIGNAR' ? '' : groupTitle);
+        document.getElementById('edit-group-techs-modal').style.display = 'block';
+    }
+    function saveEditGroupTechs() {
+        if (checkLock()) return;
+        const checkboxes = document.querySelectorAll('.edit-group-techs-grid-cb:checked');
+        const selected = Array.from(checkboxes).map(cb => cb.value.trim().toUpperCase()).filter(Boolean);
+        const newTechs = selected.sort().join(' - ');
+        const oldTitle = editGroupTechsTitle;
+        let changed = false;
+        (avionesData || []).forEach(avion => {
+            (avion.tareas || []).forEach(t => {
+                if (normalizeTechGroup(t.techs) === oldTitle) {
+                    t.techs = newTechs;
+                    changed = true;
+                }
+            });
+        });
+        if (changed) {
+            localMutation = true;
+            saveData();
+        }
+        editGroupTechsTitle = null;
+        closeModal('edit-group-techs-modal');
+        render();
+    }
+    function populateAddTaskAvionSelect(selectedId) {
+        const sel = document.getElementById('add-task-avion');
+        if (!sel) return;
+        const lista = listaAMostrar();
+        const aviones = (lista || []).filter(a => !a.isActivity);
+        const all = aviones.length ? aviones : (lista || []);
+        sel.innerHTML = '';
+        all.forEach(a => {
+            const opt = document.createElement('option');
+            opt.value = String(a.id);
+            opt.textContent = (a.reg || ('AVIÓN ' + a.id)) + (a.wp ? ' [' + a.wp + ']' : '');
+            if (selectedId && String(a.id) === String(selectedId)) opt.selected = true;
+            sel.appendChild(opt);
+        });
+        const optNew = document.createElement('option');
+        optNew.value = '__new__';
+        optNew.textContent = '➕ NUEVO AVIÓN';
+        sel.appendChild(optNew);
+        if (!selectedId && all.length === 0) sel.value = '__new__';
+    }
+    function toggleAddTaskAvionNuevo() {
+        const sel = document.getElementById('add-task-avion');
+        const nuevo = document.getElementById('add-task-avion-nuevo');
+        const wpSec = document.getElementById('add-task-wp-sec');
+        const wpDrop = document.getElementById('wp-drop-tareas');
+        if (!sel || !nuevo) return;
+        const isNew = sel.value === '__new__';
+        nuevo.style.display = isNew ? 'block' : 'none';
+        if (wpSec) wpSec.style.display = isNew ? 'none' : '';
+        if (wpDrop) wpDrop.style.display = isNew ? 'none' : '';
+        const info = document.getElementById('wp-file-tareas-info');
+        if (info) info.style.display = 'none';
+        if (!isNew && sel.value) {
+            editCurrentAvionId = Number(sel.value);
+        }
+    }
+    function toggleAddTaskWpSec() {
+        toggleAddTaskAvionNuevo();
     }
 
     function saveAddTask() {
         if(checkLock()) return;
         // En modo bloqueado no se toca nada del share hasta que la tarea existe.
         const lock = addTaskLock;
-        const avion = (lock && lock.nuevoWp && !avionesData.find(a => a.id === lock.nuevoWp.id))
-            ? (avionesData.push(lock.nuevoWp), lock.nuevoWp)
-            : avionEditable(editCurrentAvionId);
+        let avion = null;
+        if (lock && lock.nuevoWp && !avionesData.find(a => a.id === lock.nuevoWp.id)) {
+            avion = (avionesData.push(lock.nuevoWp), lock.nuevoWp);
+        } else if (lock) {
+            avion = avionEditable(lock.avionId || editCurrentAvionId);
+        } else {
+            const sel = document.getElementById('add-task-avion');
+            const val = sel ? sel.value : null;
+            if (val === '__new__') {
+                const reg = (document.getElementById('add-task-avion-reg').value || '').trim().toUpperCase();
+                if (!reg) { showConfirm('INGRESA LA MATRÍCULA DEL AVIÓN.', null); return; }
+                const pos = (document.getElementById('add-task-avion-pos').value || '').trim().toUpperCase();
+                const start = (document.getElementById('add-task-avion-start').value || '').trim();
+                const end = (document.getElementById('add-task-avion-end').value || '').trim();
+                const wp = (document.getElementById('add-task-avion-wp').value || '').trim().toUpperCase();
+                const nuevo = { id: Date.now(), reg: reg, pos: pos, start: start, end: end, wp: wp, comment: '', tareas: [] };
+                avionesData.push(nuevo);
+                avion = nuevo;
+            } else {
+                avion = avionEditable(val ? Number(val) : editCurrentAvionId);
+            }
+        }
         if (!avion) { seguroCompartidas(limpiarAddTaskLock); return showConfirm('YA NO ESTÁ EL AVIÓN EN ESTE TURNO. CIERRA Y ABRE DE NUEVO.', null); }
+        editCurrentAvionId = avion.id;
         if(!avion.tareas) avion.tareas = [];
         // Bloqueado: se usan los valores de la tarea compartida, no lo que haya en el input.
         const desc = lock ? lock.desc : document.getElementById('add-task-desc').value.trim().toUpperCase();
@@ -11725,11 +12258,39 @@
 
     function openPredefModal(avionId) {
         if(checkLock()) return;
+        if (!avionId) {
+            const lista = listaAMostrar();
+            const first = (lista || []).find(a => !a.isActivity) || (lista || [])[0];
+            if (!first) { showConfirm('CREA UN AVIÓN PRIMERO.', null); return; }
+            avionId = first.id;
+        }
         if (!avionEditable(avionId)) return;
         editCurrentAvionId = avionId;
+        // poblar selector de avión
+        const sel = document.getElementById('predef-avion');
+        if (sel) {
+            const lista = listaAMostrar();
+            const aviones = (lista || []).filter(a => !a.isActivity);
+            const all = aviones.length ? aviones : (lista || []);
+            sel.innerHTML = '';
+            all.forEach(a => {
+                const opt = document.createElement('option');
+                opt.value = String(a.id);
+                opt.textContent = (a.reg || ('AVIÓN ' + a.id)) + (a.wp ? ' [' + a.wp + ']' : '');
+                if (String(a.id) === String(avionId)) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        }
         document.getElementById('new-predef-desc').value = '';
         updatePredefTasksUI();
         document.getElementById('predef-task-modal').style.display = 'block';
+    }
+    function changePredefAvion() {
+        const sel = document.getElementById('predef-avion');
+        if (sel && sel.value) {
+            editCurrentAvionId = Number(sel.value);
+            updatePredefTasksUI();
+        }
     }
 
     function updatePredefTasksUI() {
@@ -11875,7 +12436,8 @@
     const IMPRESION_ANCHO_PX = Math.round((HOJA_ANCHO_MM - 2 * HOJA_MARGEN_MM) * MM_A_PX) - 6; // 720px
     const IMPRESION_ALTO_PX = (HOJA_ALTO_MM - 2 * HOJA_MARGEN_MM - 8) * MM_A_PX;                // 933px, con 8mm de holgura
     const IMPRESION_FONT_PX = 15;                                         // --print-font-size sin escala
-    function getPrintScale() {
+    function getPrintScale(paginas) {
+        const p = paginas || window.__printPaginas || 1;
         const printArea = document.getElementById('print-area');
 
         const m = document.createElement('div');
@@ -11893,21 +12455,89 @@
         const h = m.scrollHeight;
         document.body.removeChild(m);
 
-        // La impresion usa margenes mas justos que la pantalla (por ejemplo .task-item
-        // pasa de 6px a 0.28em), asi que la altura medida aqui es un poco mayor que la
-        // real: la escala sale un pelo corta, que es el lado seguro (nunca una 2a hoja).
-        if (h <= IMPRESION_ALTO_PX) return 1;
-        return Math.max((IMPRESION_ALTO_PX / h), 0.53);
+        // Margen de seguridad (0.95) para compensar gaps de page-break-inside: avoid
+        // que la medicion no captura. Asi se evita el desborde a una pagina extra.
+        const margenSeguridad = 0.95;
+        const objetivo = IMPRESION_ALTO_PX * p * margenSeguridad;
+        // Sin minimo artificial: escala lo necesario para que quepa. Piso muy bajo
+        // solo para evitar texto ilegible; el aviso al usuario se maneja aparte.
+        const minScale = 0.25;
+        if (h <= objetivo) return 1;
+        return Math.max((objetivo / h), minScale);
+    }
+
+    // Escala necesaria SIN piso, para decidir si avisar al usuario.
+    function escalaNecesaria(paginas) {
+        const p = paginas || window.__printPaginas || 1;
+        const printArea = document.getElementById('print-area');
+        const m = document.createElement('div');
+        m.style.cssText = `position:absolute;top:-99999px;left:0;visibility:hidden;`;
+        m.style.width = IMPRESION_ANCHO_PX + 'px';
+        m.style.fontSize = IMPRESION_FONT_PX + 'px';
+        m.style.lineHeight = '1.15';
+        const c = printArea.cloneNode(true);
+        c.querySelectorAll('.no-print, .leader-only').forEach(el => el.remove());
+        c.style.zoom = '';
+        m.appendChild(c);
+        document.body.appendChild(m);
+        const h = m.scrollHeight;
+        document.body.removeChild(m);
+        const objetivo = IMPRESION_ALTO_PX * p * 0.95;
+        if (h <= objetivo) return 1;
+        return objetivo / h;
     }
 
     window.addEventListener('beforeprint', () => {
-        const s = getPrintScale();
+        if (!window.__printPaginas) window.__printPaginas = 1;
+        const s = getPrintScale(window.__printPaginas);
         document.documentElement.style.setProperty('--print-font-size', (IMPRESION_FONT_PX * s) + 'px');
     });
 
     window.addEventListener('afterprint', () => {
         document.documentElement.style.removeProperty('--print-font-size');
+        window.__printPaginas = null;
     });
+
+    // Interceptar atajo de teclado (mejor esfuerzo)
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+            e.preventDefault();
+            abrirDialogoImpresion();
+        }
+    });
+
+    function aplicarEscalaImpresion(paginas) {
+        const s = getPrintScale(paginas);
+        document.documentElement.style.setProperty('--print-font-size', (IMPRESION_FONT_PX * s) + 'px');
+    }
+    function abrirDialogoImpresion() {
+        const m = document.getElementById('print-dialog');
+        if (m) m.style.display = 'block';
+    }
+    function cerrarDialogoImpresion() {
+        const m = document.getElementById('print-dialog');
+        if (m) m.style.display = 'none';
+    }
+    function confirmarImpresion(paginas) {
+        window.__printPaginas = paginas;
+        cerrarDialogoImpresion();
+        // Si no cabe con texto legible, avisar y dejar decidir al usuario.
+        const escalaRaw = escalaNecesaria(paginas);
+        if (escalaRaw < 0.25) {
+            const forzar = confirm('El contenido no cabe en ' + paginas + ' página(s) con texto legible. ¿Imprimir igual (texto muy pequeño)?');
+            if (!forzar) {
+                const mas = confirm('¿Usar ' + (paginas + 1) + ' páginas en su lugar?');
+                if (mas) {
+                    window.__printPaginas = paginas + 1;
+                } else {
+                    window.__printPaginas = null;
+                    return;
+                }
+            }
+        }
+        aplicarEscalaImpresion(window.__printPaginas);
+        window.print();
+    }
 
     // ─── ORDENAR MANUALMENTE (drag & drop con Pointer Events) ───
     let orderDrag = null;
@@ -11926,7 +12556,10 @@
     function startOrderDrag(e, type, avionId, taskId) {
         if (e.button !== 0) return;
         if (isShiftLockedForMe()) return;
-        if (currentViewMode !== 'default' || currentTechFilter) return;
+        if (currentTechFilter) return;
+        if (vistaTodos) return;
+        if (!['default', 'tech', 'tech-group'].includes(currentViewMode)) return;
+        if (!puedePlanificar()) return;
 
         const el = type === 'avion'
             ? document.querySelector(`.avion-section[data-avion-id="${avionId}"]`)
@@ -11949,13 +12582,22 @@
             ghost,
             pointerId: e.pointerId !== undefined ? e.pointerId : null,
             targetEl: null,
+            targetGroup: null,
             before: false,
             groupContainer: null,
+            sourceGroup: null,
+            fromTitle: null,
+            reassign: (currentViewMode === 'tech' || currentViewMode === 'tech-group'),
             moved: false
         };
 
         el.classList.add('dragging');
         document.body.classList.add('dragging-active');
+        // Registrar grupo de origen en modo reasignacion
+        if (orderDrag.reassign) {
+            orderDrag.sourceGroup = el.closest('.avion-section');
+            orderDrag.fromTitle = orderDrag.sourceGroup ? orderDrag.sourceGroup.dataset.groupTitle : null;
+        }
         moveOrderGhost(e);
     }
 
@@ -11967,6 +12609,37 @@
     }
 
     function updateOrderIndicator(clientY) {
+        // Modo reasignacion (tech / tech-group): el drop es sobre un GRUPO completo.
+        if (orderDrag.reassign) {
+            document.querySelectorAll('.avion-section.drag-over-group').forEach(g => g.classList.remove('drag-over-group'));
+            const groups = Array.from(document.querySelectorAll('#aviones-container .avion-section'));
+            let best = null;
+            for (const g of groups) {
+                if (g === orderDrag.sourceGroup) continue;
+                const r = g.getBoundingClientRect();
+                if (clientY >= r.top && clientY <= r.bottom) { best = g; break; }
+            }
+            if (!best) {
+                let bestDist = Infinity;
+                for (const g of groups) {
+                    if (g === orderDrag.sourceGroup) continue;
+                    const r = g.getBoundingClientRect();
+                    const d = clientY < r.top ? (r.top - clientY) : (clientY - r.bottom);
+                    if (d < bestDist) { bestDist = d; best = g; }
+                }
+                if (bestDist > 60) best = null;
+            }
+            const line = getDropLine();
+            line.style.display = 'none';
+            if (best) {
+                best.classList.add('drag-over-group');
+                orderDrag.targetGroup = best;
+            } else {
+                orderDrag.targetGroup = null;
+            }
+            return;
+        }
+
         let candidates;
         if (orderDrag.type === 'avion') {
             candidates = Array.from(document.querySelectorAll('#aviones-container .avion-section:not(.activity-group)'));
@@ -12019,7 +12692,46 @@
     }
 
     function applyOrder() {
-        if (!orderDrag || !orderDrag.targetEl) return;
+        if (!orderDrag) return;
+        if (orderDrag.reassign) {
+            const targetGroup = orderDrag.targetGroup;
+            if (!targetGroup) return;
+            const fromTitle = orderDrag.fromTitle;
+            const toTitle = targetGroup.dataset.groupTitle;
+            if (!toTitle || fromTitle === toTitle) return;
+            const avion = avionEditable(orderDrag.avionId);
+            if (!avion) return;
+            const task = (avion.tareas || []).find(t => t.id == orderDrag.taskId);
+            if (!task) return;
+            const isTechMode = currentViewMode === 'tech';
+            if (toTitle === 'SIN ASIGNAR') {
+                if (isTechMode) {
+                    // quitar origen, no agregar nada
+                    const parts = (task.techs || '').split(' - ').map(s => s.trim()).filter(Boolean)
+                        .filter(t => t.toUpperCase() !== (fromTitle || '').toUpperCase());
+                    task.techs = parts.join(' - ');
+                } else {
+                    task.techs = '';
+                }
+            } else {
+                if (isTechMode) {
+                    const parts = (task.techs || '').split(' - ').map(s => s.trim()).filter(Boolean);
+                    const filtered = parts.filter(t => t.toUpperCase() !== (fromTitle || '').toUpperCase());
+                    if (!filtered.some(t => t.toUpperCase() === toTitle.toUpperCase())) {
+                        filtered.push(toTitle);
+                    }
+                    task.techs = filtered.join(' - ');
+                } else {
+                    task.techs = toTitle;
+                }
+            }
+            localMutation = true;
+            saveData();
+            render();
+            try { showToast('TAREA REASIGNADA', 1500); } catch (e) {}
+            return;
+        }
+        if (!orderDrag.targetEl) return;
         const before = orderDrag.before;
         const draggedId = orderDrag.type === 'avion' ? orderDrag.avionId : orderDrag.taskId;
 
@@ -12084,6 +12796,7 @@
             if (orderDrag.el) orderDrag.el.classList.remove('dragging');
             if (orderDrag.ghost) orderDrag.ghost.remove();
         }
+        document.querySelectorAll('.avion-section.drag-over-group').forEach(g => g.classList.remove('drag-over-group'));
         if (orderDropLine) orderDropLine.style.display = 'none';
         orderDrag = null;
         document.body.classList.remove('dragging-active');
@@ -12384,25 +13097,29 @@
         updateHeader, commitHeader, updateTlSuggestions, addTech, removeTech, toggleMode,
         formatMatricula, autoFormatTango, handleTangoClick, closeModal,
         toggleTask, toggleAtencion,
-        openAddAvionModal, saveAddAvion, openAddActivityModal, saveAddActivity, 
+        openAddAvionModal, saveAddAvion, openAddActivityModal, saveAddActivity,
+        focusAddTechInput, 
         openEditActivityGroupModal, saveEditActivityGroup, confirmDeleteActivities,
         openAddMessageModal, openEditMessage, saveMessageFromModal, deleteMessageFromModal,
         openEditAvionModal, saveEditAvion, confirmDeleteAvion,
         openAddTaskModal, saveAddTask, openEditTaskModal, saveEditTask, confirmDeleteTask,
+        toggleAddTaskAvionNuevo, openEditGroupTechs, saveEditGroupTechs,
         openTaskStatusModal, selectTaskStatus, saveTaskStatus, closeTaskStatusModal, getStatusBadgeHTML,
         abrirModalCompartidas, compartirTareaActual, retirarCompartida, aceptarCompartida, rechazarCompartida,
         crearEnvioCompartido,
         abrirPanelTareaCompartida, limpiarAddTaskLock, irATurnoCompartido, cambioDestinoCompartida,
         closeConfirmModal, closePromptModal,
+        abrirDialogoImpresion, cerrarDialogoImpresion, confirmarImpresion,
         changeViewMode, applyLocalFilter, resetLocalFilter, handleTaskDescInput,
         formatTime, changeTurno, changeDate, goToToday, toggleLockShift,
         finalizeTime, onTimeKeyEnter,
         openManageTechsModal, showGlobalTechDetails, startEditGlobalTechName, saveGlobalTechNameEdit, removeGlobalTech,
         openAddGlobalTechModal, saveManualGlobalTech, guardarTurnoGlobalTech, showTechDetailsFromPanel,
         syncShiftWithRol, startEditSheetTechName, saveSheetTechNameEdit,
-        guardarConfigRolVivo, cargarGruposDesdeSheet, diagnosticarSheetMesActual, ensureAddTechDatalist,
+        guardarConfigRolVivo, cargarGruposDesdeSheet, diagnosticarSheetMesActual, ensureAddTechDatalist, cargarTurnoTechEnFecha, switchManageTechsTab, cargarConsultaTurno, cargarConsultaTurnoResultados,
         adminShowTab, adminCambiarMesRol, renderAdminRolMesSelect, adminCambiarEquipoRolPanel, renderAdminRolEquipoSelect,
         openPredefModal, createAndAddPredef, addExistingPredef, removePredefTask,
+        changePredefAvion,
         // carga rápida de work package (.xlsx / .csv)
         wpArchivoElegido, wpMarcarTodas, wpAvisoImport, wpCerrarImport, wpVolverAImport,
         wpIrAsignar, wpGuardar, wpAvanzar, wpTocarTecnico, wpPonerDestino,
