@@ -2328,6 +2328,23 @@
     </div>
 </div>
 
+<!-- NUEVO: Modal para ingresar BP al primer login (doble confirmación) -->
+<div id="bp-setup-modal" class="modal" style="z-index: 1500;">
+  <div class="modal-content" style="max-width: 420px;">
+    <div class="modal-header">🔐 CONFIGURAR TU BP</div>
+    <div style="font-size: 11px; color: var(--text-soft); margin-bottom: 16px; line-height: 1.5; text-align: center;">
+      Es la primera vez que accedes o tu perfil no tiene BP. Ingresa tu código BP (Personal Badge) para identificarte en las tareas.
+    </div>
+    <input type="text" id="bp-setup-input" autocomplete="off" placeholder="INGRESA TU BP" maxlength="20" style="text-transform: uppercase; font-size: 14px; letter-spacing: 1px;" oninput="this.value = this.value.toUpperCase(); validarBpSetup()">
+    <input type="text" id="bp-setup-confirm" autocomplete="off" placeholder="CONFIRMA TU BP" maxlength="20" style="text-transform: uppercase; font-size: 14px; letter-spacing: 1px; margin-top: 10px;" oninput="this.value = this.value.toUpperCase(); validarBpSetup()">
+    <div id="bp-setup-error" style="color: var(--danger); font-size: 10px; font-weight: 700; min-height: 14px; margin-top: 8px; text-align: center;"></div>
+    <div class="modal-footer">
+      <button class="btn-outline btn-modal-action" onclick="closeBpSetupModal()">CANCELAR</button>
+      <button class="btn-leader btn-modal-action" id="bp-setup-save-btn" onclick="saveBpSetup()" disabled>GUARDAR Y ENTRAR</button>
+    </div>
+  </div>
+</div>
+
 <div id="manage-shift-modal" class="modal">
     <div class="modal-content">
         <div class="modal-header">⚠️ ADMINISTRAR TURNO</div>
@@ -2737,6 +2754,9 @@
                 <div class="admin-card-title">AGREGAR / EDITAR USUARIO</div>
                 <input type="text" id="admin-realname" class="admin-field" list="admin-sugerencias-nombre" placeholder="NOMBRE · EJ: JUAN PEREZ" autocomplete="off" oninput="adminSugerir('nombre')" onchange="adminCompletar('nombre')" onkeypress="if(event.key === 'Enter') adminAddUser()">
                 <input type="text" id="admin-name" class="admin-field" list="admin-sugerencias" placeholder="EMAIL · EJ: juan.perez@latam.cl" autocomplete="off" oninput="adminSugerir('email')" onchange="adminCompletar('email')" onkeypress="if(event.key === 'Enter') adminAddUser()">
+                <!-- NUEVO: Campo BP (solo para tech/tl) -->
+                <input type="text" id="admin-bp-input" class="admin-field" placeholder="BP (EJ: BP123456)" maxlength="20" autocomplete="off" style="text-transform: uppercase; display: none;" oninput="this.value = this.value.toUpperCase()">
+                <div class="team-note" id="admin-bp-nota" style="font-size: 9px; display: none;"></div>
                 <datalist id="admin-sugerencias"></datalist>
                 <datalist id="admin-sugerencias-nombre"></datalist>
                 <div class="team-note" id="admin-sugerencia-nota"></div>
@@ -2820,6 +2840,19 @@
                 <div class="admin-card-title">MODO MANTENIMIENTO <span style="font-weight:400;opacity:.7">· SOLO SUPER ADMIN</span></div>
                 <div class="team-note admin-manto-note" id="admin-mantenimiento-nota">DESACTIVADO. TODO EL PERSONAL ACCEDE CON NORMALIDAD.</div>
                 <button type="button" class="admin-rol-btn admin-manto-btn" id="admin-mantenimiento-btn" onclick="adminAlternarMantenimiento()">🔧 ACTIVAR MANTENIMIENTO</button>
+            </div>
+
+            <div class="admin-card admin-manto-card" id="admin-tl-super-estados-card" style="display:none;">
+                <div class="admin-card-title">TL/SUPER PUEDEN CAMBIAR ESTADOS SIN ASIGNAR BP <span style="font-weight:400;opacity:.7">· SOLO SUPER ADMIN</span></div>
+                <div class="team-note admin-manto-note" id="admin-tl-super-estados-nota">
+                    <strong>NORMAL (DESACTIVADO):</strong> Solo los técnicos con BP asignado en la tarea pueden cambiar estados/alertas.
+                    TL, Planner y Super NO pueden cambiar estados de tareas donde no tienen su BP asignado.
+                </div>
+                <div class="team-note" style="margin-top: 8px;">
+                    <strong>ACTIVADO:</strong> TL, Planner y Super pueden cambiar estados/alertas en CUALQUIER tarea de su equipo,
+                    aunque no tengan su BP asignado. Útil para gestión y supervisión.
+                </div>
+                <button type="button" class="admin-rol-btn admin-manto-btn" id="admin-tl-super-estados-btn" onclick="adminAlternarTlSuperEstados()">⚙️ ACTIVAR MODO SUPERVISIÓN</button>
             </div>
         </div>
 
@@ -3050,7 +3083,11 @@
     // Configuración global para rol en vivo desde Google Sheet
     const configRolUrlsRef = ref(db, 'mantenimiento/alisteo/config/rol_sheet_urls');
     const configGruposRef = ref(db, 'mantenimiento/alisteo/config/grupos_por_equipo');
+    const configTlSuperEstadosRef = ref(db, 'mantenimiento/alisteo/config/tl_super_pueden_cambiar_estados');
     const libreriaTecnicosRef = ref(db, 'mantenimiento/alisteo/libreria_tecnicos');
+
+    // Configuración: ¿TL/Super/Planner pueden cambiar estados sin BP asignado?
+    let tlSuperPuedenCambiarEstados = false;
 
     // La identidad es SIEMPRE el correo completo. Se aceptan también el alias sin
     // dominio para no dejar fuera cuentas antiguas ni listas ya cargadas en Firebase.
@@ -4016,17 +4053,27 @@
         const u = sessionUser();
         if (!u || indicesPropiosReparados) return Promise.resolve();
         indicesPropiosReparados = true;
-        return Promise.all([
-            sincronizarIndiceSupervisors(u),
-            sincronizarIndicePlanners(u),
-            sincronizarIndiceGlobalAdmins(u)
-        ]).then(() => {
+
+        // SOLO sincronizar índices globales que le correspondan al usuario según sus roles REALES
+        const promesasGlobales = [];
+        if (esSupervisor(u)) promesasGlobales.push(sincronizarIndiceSupervisors(u));
+        if (esPlanner(u)) promesasGlobales.push(sincronizarIndicePlanners(u));
+        if (adminGlobalDe(u)) promesasGlobales.push(sincronizarIndiceGlobalAdmins(u));
+        // Si no es ninguno de los anteriores, NO intentamos tocar supervisors/planners/global_admins
+
+        return Promise.all(promesasGlobales).then(() => {
             const rec = usuariosDB[userKeyFor(u)];
             if (!rec || !rec.roles) return;
-            return Promise.all(Object.keys(rec.roles).map(t => Promise.all([
-                sincronizarIndiceAdmins(u, t),
-                sincronizarIndiceTls(u, t)
-            ])));
+            // Solo indices de equipos donde el usuario TIENE rol específico
+            return Promise.all(Object.keys(rec.roles).map(t => {
+                const r = rec.roles[t] || {};
+                const promesasEquipo = [];
+                // Solo sincronizar admins si ES admin en ese equipo
+                if (r.admin === true) promesasEquipo.push(sincronizarIndiceAdmins(u, t));
+                // Solo sincronizar tls si ES TL en ese equipo
+                if (r.tl === true) promesasEquipo.push(sincronizarIndiceTls(u, t));
+                return Promise.all(promesasEquipo);
+            }));
         }).catch(e => console.warn('reparacion de indices propios:', e && e.message));
     }
 
@@ -4046,13 +4093,14 @@
             .then(() => {
                 paso = 'indices';
                 aplicarRolesLocal(user, team, rolRecData);
-                return Promise.all([
-                    sincronizarIndiceAdmins(user, team),
-                    sincronizarIndiceTls(user, team),
-                    sincronizarIndiceGlobalAdmins(user),
-                    sincronizarIndiceSupervisors(user),
-                    sincronizarIndicePlanners(user)
-                ]);
+                const r = rolRecData || {};
+                const promesasIndices = [];
+                // Solo admins si ES admin en ese equipo
+                if (r.admin === true) promesasIndices.push(sincronizarIndiceAdmins(user, team));
+                // Solo tls si ES TL en ese equipo
+                if (r.tl === true) promesasIndices.push(sincronizarIndiceTls(user, team));
+                // Globales: se manejan en guardarRolGlobal, no aquí
+                return Promise.all(promesasIndices);
             })
             .then(() => {
                 paso = 'refrescar';
@@ -4069,13 +4117,18 @@
                 // Sin esto solo sale PERMISSION_DENIED y no se sabe dónde.
                 console.error('FIREBASE WRITE ERROR [paso=' + paso + '] ' + rutaRoles, e);
                 if (previo) aplicarRolesLocal(user, team, previo);
-                Promise.all([
-                    sincronizarIndiceAdmins(user, team),
-                    sincronizarIndiceTls(user, team),
-                    sincronizarIndiceGlobalAdmins(user),
-                    sincronizarIndiceSupervisors(user),
-                    sincronizarIndicePlanners(user)
-                ]).catch(() => {});
+                // Solo sincronizar índices que correspondan al usuario/equipo REAL
+                const r = recLocalDe(claveNodoDe(user)).roles?.[team] || {};
+                const promesasIndices = [];
+                // Solo admins si ES admin en ese equipo
+                if (r.admin === true) promesasIndices.push(sincronizarIndiceAdmins(user, team));
+                // Solo tls si ES TL en ese equipo
+                if (r.tl === true) promesasIndices.push(sincronizarIndiceTls(user, team));
+                // Globales solo si tiene esos roles globales
+                if (adminGlobalDe(user)) promesasIndices.push(sincronizarIndiceGlobalAdmins(user));
+                if (esSupervisor(user)) promesasIndices.push(sincronizarIndiceSupervisors(user));
+                if (esPlanner(user)) promesasIndices.push(sincronizarIndicePlanners(user));
+                Promise.all(promesasIndices).catch(() => {});
                 syncRoleArrays();
                 updateAdminUI();
                 updateTeamSwitcher();
@@ -4106,11 +4159,18 @@
         tareas.push(set(ref(db, 'mantenimiento/alisteo/usuarios/' + key + '/rolGlobal'), rgValido || null));
         tareas.push(set(ref(db, 'mantenimiento/alisteo/usuarios/' + key + '/adminGlobal'), adminGlobal ? true : null));
         return Promise.all(tareas)
-            .then(() => Promise.all([
-                sincronizarIndiceSupervisors(user),
-                sincronizarIndicePlanners(user),
-                sincronizarIndiceGlobalAdmins(user)
-            ]))
+            .then(() => {
+                // Solo sincronizar índices globales que correspondan al NUEVO rol
+                const promesasGlobales = [];
+                if (rgValido === 'super') promesasGlobales.push(sincronizarIndiceSupervisors(user));
+                if (rgValido === 'planner') promesasGlobales.push(sincronizarIndicePlanners(user));
+                if (adminGlobal) promesasGlobales.push(sincronizarIndiceGlobalAdmins(user));
+                // Si se quitó el rol global, limpiar el índice correspondiente
+                if (previoRg === 'super' && rgValido !== 'super') promesasGlobales.push(sincronizarIndiceSupervisors(user));
+                if (previoRg === 'planner' && rgValido !== 'planner') promesasGlobales.push(sincronizarIndicePlanners(user));
+                if (previoAg && !adminGlobal) promesasGlobales.push(sincronizarIndiceGlobalAdmins(user));
+                return Promise.all(promesasGlobales);
+            })
             .then(() => {
                 syncRoleArrays();
                 updateTeamSwitcher();
@@ -4123,11 +4183,12 @@
                 console.error('FIREBASE WRITE ERROR', e);
                 rec.rolGlobal = previoRg;
                 rec.adminGlobal = previoAg;
-                Promise.all([
-                    sincronizarIndiceSupervisors(user),
-                    sincronizarIndicePlanners(user),
-                    sincronizarIndiceGlobalAdmins(user)
-                ]).catch(() => {});
+                // Solo intentar sincronizar lo que corresponde a los roles anteriores
+                const promesasGlobales = [];
+                if (previoRg === 'super') promesasGlobales.push(sincronizarIndiceSupervisors(user));
+                if (previoRg === 'planner') promesasGlobales.push(sincronizarIndicePlanners(user));
+                if (previoAg) promesasGlobales.push(sincronizarIndiceGlobalAdmins(user));
+                Promise.all(promesasGlobales).catch(() => {});
                 syncRoleArrays();
                 updateAdminUI();
                 updateTeamSwitcher();
@@ -4377,9 +4438,10 @@
                     roles[EQUIPO_DEFECTO] = Object.assign({ nombre: e.nombre || '' }, rolesDeUnRol(rolEq, r.admin === true));
                 }
             }
-            const rec = { email: email, nombre: nombre, roles: roles };
+            const rec = { email: email, nombre: nombre, bp: e.bp || '', roles: roles };
             if (rolGlobal) rec.rolGlobal = rolGlobal;
             if (adminGlobal) rec.adminGlobal = true;
+            if (e.fecha_alta) rec.fecha_alta = e.fecha_alta;
             // Nodo basura: sin correo, sin rol global y sin roles por equipo no se carga.
             if (!email && !rolGlobal && !Object.keys(roles).length) return;
             usuariosDB[key] = rec;
@@ -4422,6 +4484,11 @@
             configGruposPorEquipo = snapshot.val() || {};
             renderGruposPorEquipoPanel();
         }, (e) => console.warn('config grupos_por_equipo:', e.code)));
+        // Configuración: TL/Super/Planner pueden cambiar estados sin BP asignado
+        rolesUnsubs.push(onValue(configTlSuperEstadosRef, (snapshot) => {
+            tlSuperPuedenCambiarEstados = snapshot.val() === true;
+            updateMantenimientoUI(); // actualiza el botón en la pestaña
+        }, (e) => console.warn('config tl_super_estados:', e.code)));
         // Librería maestra de técnicos (BP -> nombre). Se mantiene sincronizada en
         // todos los navegadores para que los nombres editados apliquen al sincronizar
         // el rol sin depender de que se haya abierto el modal de técnicos.
@@ -5434,6 +5501,22 @@ ver('btn-add-tech-view', ocultarAvion && (esVistaTodos ? puedePanelEnTodos() : p
             // hay que asegurar el indice de uids o las reglas no dareian permisos.
             const g = googleUser();
             if (g && !uidLinked) { linkUid(g, u).then(() => { uidLinked = true; }).catch(() => {}); }
+            
+            // NUEVO: Verificar si el usuario (tech/tl) tiene BP en su perfil
+            const userRec = usuariosDB[userKeyFor(u)];
+            const userBp = userRec && userRec.bp ? userRec.bp.trim() : '';
+            const rolActual = rolGlobalDe(u) || rolDeUsuario(u, currentTeam);
+            const necesitaBp = (rolActual === 'tech' || rolActual === 'tl') && !userBp;
+            
+            if (necesitaBp) {
+                limpiarPantallaMantenimiento();
+                overlay.style.display = 'none';
+                // Mostrar modal BP ANTES de attachData()
+                document.getElementById('bp-setup-modal').style.display = 'block';
+                setTimeout(() => document.getElementById('bp-setup-input').focus(), 100);
+                return; // NO continuar con attachData() hasta que guarde BP
+            }
+            
             limpiarPantallaMantenimiento();
             overlay.style.display = 'none';
             attachData();
@@ -5809,6 +5892,23 @@ ver('btn-add-tech-view', ocultarAvion && (esVistaTodos ? puedePanelEnTodos() : p
                 : 'DESACTIVADO. TODO EL PERSONAL ACCEDE CON NORMALIDAD.';
             nota.style.color = mantenimientoActivo ? 'var(--danger)' : 'var(--comment)';
         }
+
+        // NUEVO: Actualizar tarjeta TL/Super estados
+        const card2 = document.getElementById('admin-tl-super-estados-card');
+        const btn2 = document.getElementById('admin-tl-super-estados-btn');
+        const nota2 = document.getElementById('admin-tl-super-estados-nota');
+        if (card2) card2.style.display = puede ? 'block' : 'none';
+        if (!puede || !btn2) return;
+        if (btn2) {
+            btn2.classList.toggle('on', tlSuperPuedenCambiarEstados);
+            btn2.textContent = tlSuperPuedenCambiarEstados ? '⚙️ MODO SUPERVISIÓN ACTIVO · DESACTIVAR' : '⚙️ ACTIVAR MODO SUPERVISIÓN';
+        }
+        if (nota2) {
+            nota2.innerHTML = tlSuperPuedenCambiarEstados
+                ? '<strong>ACTIVADO (MODO SUPERVISIÓN):</strong> TL, Planner y Super pueden cambiar estados/alertas en CUALQUIER tarea de su equipo, aunque no tengan su BP asignado.'
+                : '<strong>NORMAL (DESACTIVADO):</strong> Solo los técnicos con BP asignado en la tarea pueden cambiar estados/alertas. TL, Planner y Super NO pueden cambiar estados de tareas donde no tienen su BP asignado.';
+            nota2.style.color = tlSuperPuedenCambiarEstados ? 'var(--success)' : 'var(--comment)';
+        }
     }
     function adminAlternarMantenimiento() {
         if (!isSuperAdmin(sessionUser())) {
@@ -5851,6 +5951,41 @@ ver('btn-add-tech-view', ocultarAvion && (esVistaTodos ? puedePanelEnTodos() : p
                             ? '\nRevisa que REGLAS_FIREBASE.json esté publicado en Firebase.'
                             : '';
                         showToast('⚠️ NO SE PUDO CAMBIAR EL MODO MANTENIMIENTO (' + (e.code || e.message) + ')' + pista);
+                    });
+            }
+        );
+        const yes = document.getElementById('confirm-yes-btn');
+        if (yes) yes.innerText = activar ? 'SÍ, ACTIVAR' : 'SÍ, DESACTIVAR';
+    }
+
+    // NUEVO: Alternar configuración TL/Super pueden cambiar estados sin BP
+    function adminAlternarTlSuperEstados() {
+        if (!isSuperAdmin(sessionUser())) {
+            return showToast('⚠️ SOLO EL SUPER ADMIN PUEDE CAMBIAR ESTA CONFIGURACIÓN');
+        }
+        const activar = !tlSuperPuedenCambiarEstados;
+        showConfirm(
+            activar
+                ? '⚠️ SE ACTIVARÁ EL MODO SUPERVISIÓN\n\n' +
+                  'TL, Planner y Super podrán cambiar estados/alertas en CUALQUIER tarea de su equipo,\n' +
+                  'aunque NO tengan su BP asignado en esa tarea.\n\n' +
+                  'Esto es útil para gestión y supervisión, pero reduce el control individual.\n\n' +
+                  '¿ACTIVAR MODO SUPERVISIÓN?'
+                : '¿DESACTIVAR MODO SUPERVISIÓN?\n\n' +
+                  'Volverá al comportamiento normal: solo quien tenga su BP asignado\n' +
+                  'en la tarea podrá cambiar su estado/alerta.',
+            () => {
+                dbSet(configTlSuperEstadosRef, activar, activar ? 'ACTIVAR MODO SUPERVISIÓN' : 'DESACTIVAR MODO SUPERVISIÓN')
+                    .then(() => {
+                        tlSuperPuedenCambiarEstados = activar;
+                        updateMantenimientoUI();
+                        showToast(activar
+                            ? '⚙️ MODO SUPERVISIÓN ACTIVADO · TL/SUPER PUEDEN CAMBIAR ESTADOS SIN BP'
+                            : '✅ MODO SUPERVISIÓN DESACTIVADO · SOLO BP ASIGNADO CAMBIA ESTADOS');
+                    })
+                    .catch((e) => {
+                        console.error('FIREBASE WRITE ERROR (tl_super_estados)', e);
+                        showToast('⚠️ NO SE PUDO CAMBIAR LA CONFIGURACIÓN (' + (e.code || e.message) + ')');
                     });
             }
         );
@@ -6547,6 +6682,16 @@ ver('btn-add-tech-view', ocultarAvion && (esVistaTodos ? puedePanelEnTodos() : p
         if (!esGlobal && !document.getElementById('admin-equipos-grid').hasChildNodes()) {
             renderAdminEquiposGrid();
         }
+        // NUEVO: Mostrar/ocultar campo BP según rol
+        const bpField = document.getElementById('admin-bp-input');
+        const bpNota = document.getElementById('admin-bp-nota');
+        const esTechTl = rol === 'tech' || rol === 'tl';
+        if (bpField) bpField.style.display = esTechTl ? '' : 'none';
+        if (bpNota) {
+            bpNota.style.display = esTechTl ? '' : 'none';
+            bpNota.textContent = esTechTl ? 'OBLIGATORIO PARA TÉCNICO / TL' : '';
+            bpNota.style.color = esTechTl ? 'var(--danger)' : '';
+        }
         // Los roles globales solo los puede otorgar un super admin o admin global.
         const puedeGlobal = isSuperAdmin(sessionUser()) || adminGlobalDe(sessionUser());
         ROLES_GLOBALES.forEach(id => {
@@ -6593,6 +6738,14 @@ ver('btn-add-tech-view', ocultarAvion && (esVistaTodos ? puedePanelEnTodos() : p
         const key = userKeyFor(name);
         const esGlobal = ROLES_GLOBALES.indexOf(rol) > -1;
         const nombre = (document.getElementById('admin-realname').value || '').trim() || name.split('@')[0];
+
+        // NUEVO: Validar BP si el rol es tech o tl
+        const bpInput = document.getElementById('admin-bp-input');
+        const bpValue = bpInput ? bpInput.value.trim().toUpperCase() : '';
+        const esTechTl = rol === 'tech' || rol === 'tl';
+        if (esTechTl && !bpValue) {
+            return showConfirm("EL ROL TÉCNICO/TL REQUIERE INGRESAR EL BP.", null);
+        }
 
         // Validar permisos para alcance global
         const puedeGlobal = isSuperAdmin(sessionUser()) || adminGlobalDe(sessionUser());
@@ -6650,16 +6803,27 @@ ver('btn-add-tech-view', ocultarAvion && (esVistaTodos ? puedePanelEnTodos() : p
         if (esAlta && correoDistinto) {
             const identidad = Promise.all([
                 guardarEmailEnElMismoNodo(key, name),
-                guardarNombre(key, nombre)
+                guardarNombre(key, nombre),
+                // NUEVO: guardar BP si corresponde
+                (esTechTl && bpValue) 
+                    ? set(ref(db, 'mantenimiento/alisteo/usuarios/' + claveNodoDe(key) + '/bp'), bpValue)
+                    : Promise.resolve()
             ]);
             promesa = identidad.then(() => promesa);
         }
 
         promesa.then(ok => {
             if (!ok) return;
+            // NUEVO: Guardar BP si es tech/tl y no era alta nueva (usuario ya existía)
+            if (!esAlta && esTechTl && bpValue) {
+                const nodo = claveNodoDe(key);
+                set(ref(db, 'mantenimiento/alisteo/usuarios/' + nodo + '/bp'), bpValue)
+                    .catch(e => console.warn('No se pudo guardar BP:', e));
+            }
             guardarNombre(key, nombre).catch(e => showToast('⚠️ NO SE PUDO GUARDAR EL NOMBRE (' + (e.code || e.message) + ')'));
             document.getElementById('admin-name').value = '';
             document.getElementById('admin-realname').value = '';
+            if (bpInput) bpInput.value = '';
             const nota = document.getElementById('admin-sugerencia-nota');
             if (nota) { nota.textContent = ''; nota.className = 'team-note'; }
             ['admin-name', 'admin-realname'].forEach(id => {
@@ -6968,6 +7132,32 @@ ver('btn-add-tech-view', ocultarAvion && (esVistaTodos ? puedePanelEnTodos() : p
                 : 'SUPER / PLANNER tienen alcance global (todos los equipos). TL / TÉCNICO / USUARIO son de un solo equipo.';
         }
 
+        // NUEVO: Campo BP para tech/tl
+        const esTechTl = rolActual === 'tech' || rolActual === 'tl';
+        const bpHtml = esTechTl ? `
+            <div class="admin-card" style="margin-top: 8px;">
+                <div class="admin-card-title">BP (CÓDIGO DE TÉCNICO)</div>
+                <div class="user-modal-fila">
+                    <input type="text" id="user-modal-bp" class="admin-field" placeholder="EJ: BP123456" maxlength="20" autocomplete="off" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase(); userModalEscribeBp()">
+                    <button class="btn-leader btn-modal-action" onclick="userModalGuardarBp()">GUARDAR</button>
+                </div>
+                <div class="team-note" style="color: var(--danger);">OBLIGATORIO PARA ROL TÉCNICO / TL</div>
+            </div>
+        ` : '';
+        
+        const globalDivForBp = document.getElementById('user-modal-equipos-global');
+        if (globalDivForBp && esTechTl) {
+            globalDivForBp.insertAdjacentHTML('beforebegin', bpHtml);
+        } else if (!esTechTl) {
+            // Remover si existe de antes
+            const existingBp = document.getElementById('user-modal-bp');
+            if (existingBp) existingBp.closest('.admin-card').remove();
+        }
+
+        // Cargar valor actual
+        const inpBp = document.getElementById('user-modal-bp');
+        if (inpBp) inpBp.value = String(rec.bp || '').trim().toUpperCase();
+
         // selector de equipo para roles por equipo
         if (equipoRolWrap && equipoRolSel) {
             // Con alcance global el selector solo aparece si quien edita tiene
@@ -7192,6 +7382,42 @@ ver('btn-add-tech-view', ocultarAvion && (esVistaTodos ? puedePanelEnTodos() : p
         const inp = document.getElementById('user-modal-nombre');
         if (inp) userModalNombre = inp.value;
     }
+    
+    // NUEVO: Funciones para BP en modal de usuario
+    let userModalBp = null;
+    function userModalEscribeBp() {
+        const inp = document.getElementById('user-modal-bp');
+        if (inp) userModalBp = inp.value;
+    }
+    function userModalGuardarBp() {
+        const key = userModalUser;
+        if (!key) return;
+        const puedeEditar = administraAlgunEquipo(sessionUser()) || isSuperAdmin(sessionUser());
+        if (!puedeEditar) return showToast('⚠️ NO TIENES PERMISOS PARA EDITAR ESTE USUARIO');
+        const bp = (document.getElementById('user-modal-bp')?.value || '').trim().toUpperCase();
+        const nodo = claveNodoDe(key);
+        const bpRef = ref(db, 'mantenimiento/alisteo/usuarios/' + nodo + '/bp');
+        const previo = (usuariosDB[userKeyFor(key)] || {}).bp || '';
+        
+        const rec = usuariosDB[userKeyFor(key)] || {};
+        rec.bp = bp;
+        
+        dbSet(bpRef, bp || null, 'GUARDAR BP')
+            .then(() => {
+                userModalBp = null;
+                refreshAdminList();
+                renderSugerencias();
+                showToast(bp ? '✅ BP GUARDADO: ' + bp : '✅ BP BORRADO');
+            })
+            .catch((e) => {
+                rec.bp = previo;
+                console.error('FIREBASE WRITE ERROR (bp)', e);
+                userModalBp = null;
+                renderUserModal();
+                showToast('⚠️ NO SE PUDO GUARDAR EL BP (' + (e.code || e.message) + '). REVISA QUE LAS REGLAS ESTÉN PUBLICADAS.');
+            });
+    }
+    
     function userModalGuardarNombre() {
         const key = userModalUser;
         if (!key) return;
@@ -8420,7 +8646,8 @@ ver('btn-add-tech-view', ocultarAvion && (esVistaTodos ? puedePanelEnTodos() : p
             techs: '',
             done: false,
             atencion: false,
-            comment: ''
+            comment: '',
+            asignadosBp: []
         };
     }
     // Qué hay que hacer con la lista de aviones. Muta la lista SOLO si hay que
@@ -8701,6 +8928,58 @@ ver('btn-add-tech-view', ocultarAvion && (esVistaTodos ? puedePanelEnTodos() : p
         const it = (avion.tareas || []).findIndex(t => t.id == tId);
         if (it < 0) return Promise.resolve();
 
+        const tarea = avion.tareas[it];
+
+        // NUEVO: Validar BP para cambiar estado/alerta
+        const camposEstado = ['done', 'estado', 'estadoOtro', 'estadoComment', 'atencion', 'alerta', 'alertaByTL', 'alertaNombre'];
+        const tocaEstado = Object.keys(cambios).some(c => camposEstado.includes(c));
+
+        if (tocaEstado) {
+            const u = sessionUser();
+            const miBp = (usuariosDB[userKeyFor(u)] || {}).bp || '';
+            const miNombre = displayNameFor(u); // nombre visible del usuario logueado
+            const asignadosBp = tarea.asignadosBp || [];
+            
+            // FALLBACK: si no hay asignadosBp, usar campo techs (nombres) para compatibilidad
+            const techsNombres = (tarea.techs || '').split(' - ').map(n => n.trim().toUpperCase()).filter(Boolean);
+            const asignados = asignadosBp.length > 0 ? asignadosBp : techsNombres;
+            const usaFallback = asignadosBp.length === 0 && techsNombres.length > 0;
+            
+            // Super Admin de Firebase: poder total siempre
+            const esSuperAdminFirebase = isSuperAdmin(u);
+            // Rol funcional SUPER (rolGlobal: 'super') - igual que TL
+            const esSuperFuncional = rolGlobalDe(u) === 'super';
+            const esPlanner = rolGlobalDe(u) === 'planner';
+            const esTl = puede(u, 'lider', currentTeam);
+            
+            // Determinar si puede cambiar ESTADOS sin BP asignado
+            // Planner NUNCA puede cambiar estados
+            // Super Admin Firebase SIEMPRE puede
+            // SUPER funcional y TL: solo en modo supervisión
+            const puedeCambiarSinBp = esSuperAdminFirebase || (esSuperFuncional || esTl) && tlSuperPuedenCambiarEstados;
+            
+            if (!puedeCambiarSinBp) {
+                // Técnico/Usuario (o TL sin modo supervisión): verificar asignación
+                const estaAsignado = usaFallback
+                    ? techsNombres.includes(miNombre.toUpperCase())  // fallback: match por nombre
+                    : (miBp && asignados.includes(normalizeBp(miBp))); // nuevo: match por BP
+                
+                if (!estaAsignado) {
+                    const msg = usaFallback
+                        ? '⛔ NO PUEDES CAMBIAR EL ESTADO: TU NOMBRE (' + miNombre + ') NO ESTÁ EN LOS TÉCNICOS ASIGNADOS.'
+                        : '⛔ NO PUEDES CAMBIAR EL ESTADO: TU BP (' + (miBp || 'SIN BP') + ') NO ESTÁ ASIGNADO A ESTA TAREA.';
+                    showConfirm(msg, null);
+                    return Promise.resolve();
+                }
+            } else if ((esSuperAdminFirebase || esSuperFuncional || esTl) && miBp && asignados.length && !asignados.includes(normalizeBp(miBp))) {
+                // Super Admin Firebase, SUPER funcional o TL (en modo supervisión): aviso en consola
+                let rolTexto = 'TL';
+                if (esSuperAdminFirebase) rolTexto = 'Super Admin Firebase';
+                else if (esSuperFuncional) rolTexto = 'SUPER (rol)';
+                console.warn(rolTexto + ' cambiando estado de tarea sin su BP asignado (modo supervisión activado)');
+            }
+        }
+
         // Verificar el estado REAL del turno en Firebase antes de escribir.
         // shiftState puede quedar desincronizado, y las reglas bloquean aviones si esta cerrado.
         try {
@@ -8872,6 +9151,88 @@ ver('btn-add-tech-view', ocultarAvion && (esVistaTodos ? puedePanelEnTodos() : p
         closePromptModal();
         if(cb) setTimeout(() => cb(val), 0);
     };
+
+    // ─── MODAL BP SETUP (doble confirmación post-login) ───
+    function closeBpSetupModal() {
+        document.getElementById('bp-setup-modal').style.display = 'none';
+        document.getElementById('bp-setup-input').value = '';
+        document.getElementById('bp-setup-confirm').value = '';
+        document.getElementById('bp-setup-error').innerText = '';
+        document.getElementById('bp-setup-save-btn').disabled = true;
+    }
+    window.closeBpSetupModal = closeBpSetupModal;
+
+    function saveBpSetup() {
+        const bp1 = document.getElementById('bp-setup-input').value.trim().toUpperCase();
+        const bp2 = document.getElementById('bp-setup-confirm').value.trim().toUpperCase();
+        const errorEl = document.getElementById('bp-setup-error');
+        
+        if (!bp1 || !bp2) {
+            errorEl.innerText = 'AMBOS CAMPOS SON OBLIGATORIOS';
+            return;
+        }
+        if (bp1 !== bp2) {
+            errorEl.innerText = 'LOS BP NO COINCIDEN. VERIFICA E INTENTA DE NUEVO.';
+            return;
+        }
+        if (bp1.length < 3) {
+            errorEl.innerText = 'EL BP DEBE TENER AL MENOS 3 CARACTERES';
+            return;
+        }
+        
+        const u = sessionUser();
+        if (!u) return;
+        
+        const key = userKeyFor(u);
+        const nodo = claveNodoDe(u);
+        const bpRef = ref(db, 'mantenimiento/alisteo/usuarios/' + nodo + '/bp');
+        
+        mostrarSpinnerCarga();
+        set(bpRef, bp1)
+            .then(() => {
+                // Actualizar en memoria
+                const rec = usuariosDB[key] || {};
+                rec.bp = bp1;
+                ocultarSpinnerCarga();
+                closeBpSetupModal();
+                showToast('✅ BP GUARDADO: ' + bp1);
+                // AHORA SÍ continuar con la app
+                attachData();
+                myEmail = u;
+                updateTeamSwitcher();
+                syncRoleArrays();
+                repararIndicesPropios();
+                if (puedePanel()) activateLeaderUI();
+                else { if (panelAbierto) deactivateLeaderUI(); else { updateUserButton(); render(); } }
+                updateAdminUI();
+                const btnLogout = document.getElementById('btn-logout');
+                if (btnLogout) btnLogout.style.display = 'inline-flex';
+            })
+            .catch((e) => {
+                ocultarSpinnerCarga();
+                console.error('FIREBASE WRITE ERROR (bp setup)', e);
+                errorEl.innerText = 'ERROR AL GUARDAR: ' + (e.code || e.message);
+            });
+    }
+    window.saveBpSetup = saveBpSetup;
+
+    // Validación en tiempo real para habilitar botón
+    function validarBpSetup() {
+        const bp1 = document.getElementById('bp-setup-input').value.trim().toUpperCase();
+        const bp2 = document.getElementById('bp-setup-confirm').value.trim().toUpperCase();
+        const btn = document.getElementById('bp-setup-save-btn');
+        const errorEl = document.getElementById('bp-setup-error');
+        
+        if (bp1 && bp2 && bp1 === bp2 && bp1.length >= 3) {
+            btn.disabled = false;
+            errorEl.innerText = '';
+        } else {
+            btn.disabled = true;
+            if (bp1 && bp2 && bp1 !== bp2) errorEl.innerText = 'LOS BP NO COINCIDEN';
+        }
+    }
+    // Exponer globalmente para los handlers inline oninput
+    window.validarBpSetup = validarBpSetup;
 
     function getCombinedEquipoTechs() {
         const map = new Map();
@@ -9924,17 +10285,62 @@ async function showTechDetailsFromPanel(techName) {
         const locked = turnoCerradoPara(equipoT);
         const puedeCompletarTarea = !locked && puedeCompletarEn(equipoT);
         const puedeEditarTarea = !locked && puedePlanificarEn(equipoT);
-        const toggleClick = puedeCompletarTarea ? `onclick="toggleTask(${Number(avion.id)}, ${Number(t.id)})"` : "";
-        const toggleCursor = puedeCompletarTarea ? "" : "cursor: default; opacity: 0.6;";
-        const toggleHtml = puedeCompletarTarea ? `<div class="status-toggle no-print" ${toggleClick} style="${toggleCursor}" title="Cambiar estado de la tarea">✓</div>` : '';
+        
+        // NUEVO: Validar BP para técnico/usuario (configurable para TL/Super/Planner)
+        const u = sessionUser();
+        const miBp = (usuariosDB[userKeyFor(u)] || {}).bp || '';
+        const miNombre = displayNameFor(u);
+        const asignadosBp = t.asignadosBp || [];
+        const techsNombres = (t.techs || '').split(' - ').map(n => n.trim().toUpperCase()).filter(Boolean);
+        const asignados = asignadosBp.length > 0 ? asignadosBp : techsNombres;
+        const usaFallback = asignadosBp.length === 0 && techsNombres.length > 0;
+        const esSuperAdminFirebase = isSuperAdmin(u);
+        const esSuperFuncional = rolGlobalDe(u) === 'super';
+        const esPlanner = rolGlobalDe(u) === 'planner';
+        const esTl = puede(u, 'lider', equipoT);
+        
+        // Determinar si puede cambiar ESTADOS sin BP asignado (igual que en guardarMarcaTarea)
+        // Planner NUNCA. Super Admin Firebase SIEMPRE. SUPER funcional y TL: solo en modo supervisión.
+        const puedeCambiarSinBp = esSuperAdminFirebase || (esSuperFuncional || esTl) && tlSuperPuedenCambiarEstados;
+        
+        // Verificar asignación (BP nuevo o nombre fallback)
+        const estaAsignado = usaFallback
+            ? techsNombres.includes(miNombre.toUpperCase())
+            : (miBp && asignados.includes(normalizeBp(miBp)));
+        const bpPermitido = puedeCambiarSinBp || estaAsignado;
+
+        // NUEVA LÓGICA:
+        // - Si tarea SIN técnicos asignados → cualquiera puede cambiar estado (sin restricciones)
+        // - Si tarea CON técnicos asignados:
+        //   - Si usuario asignado O puedeCambiarSinBp → puede cambiar
+        //   - Si NO asignado y no puedeCambiarSinBp → NO muestra botones (ocultos)
+        const tareaTieneTecnicos = asignadosBp.length > 0 || techsNombres.length > 0;
+        const sinRestricciones = !tareaTieneTecnicos;
+
+        // Para UI: si tiene técnicos y no está asignado y no puede cambiar sin BP → OCULTAR botones
+        const mostrarBotonesEstado = puedeCompletarTarea && (sinRestricciones || bpPermitido || estaAsignado);
+        const mostrarBotonAlerta = puedeCompletarTarea && (sinRestricciones || bpPermitido || estaAsignado);
+
+        const toggleClick = mostrarBotonesEstado ? `onclick="toggleTask(${Number(avion.id)}, ${Number(t.id)})"` : "";
+        const toggleCursor = mostrarBotonesEstado ? "" : "cursor: default; opacity: 0.6;";
+        const toggleTitle = sinRestricciones
+            ? "Cambiar estado (sin técnicos asignados)"
+            : (bpPermitido || estaAsignado
+                ? "Cambiar estado de la tarea"
+                : (usaFallback
+                    ? "Tu nombre no está en los técnicos asignados"
+                    : (miBp ? "Tu BP no está asignado a esta tarea" : "No tienes BP configurado")));
+        // OCULTAR toggle si no tiene permisos (no solo deshabilitar)
+        const toggleHtml = mostrarBotonesEstado ? `<div class="status-toggle no-print" ${toggleClick} style="${toggleCursor}" title="${escapeAttr(toggleTitle)}">✓</div>` : '';
 
         let actionButtonsHtml = '';
-        if (puedeCompletarTarea || puedeEditarTarea) {
-            actionButtonsHtml = (puedeCompletarTarea
-                ? `<button class="action-btn ${t.atencion ? (t.alertaByTL ? 'active-alerta-tl' : 'active-alerta-tech') : ''}" onclick="toggleAtencion(${Number(avion.id)}, ${Number(t.id)})">⚠️</button>`
-                : '') + (puedeEditarTarea
-                ? `<div class="leader-only leader-wrapper"><button class="action-btn" onclick="openEditTaskModal(${Number(avion.id)}, ${Number(t.id)})">✏️ EDITAR</button></div>`
-                : '');
+        if (puedeEditarTarea) {
+            // Botón EDITAR siempre visible para quien puede planificar
+            actionButtonsHtml = `<div class="leader-only leader-wrapper"><button class="action-btn" onclick="openEditTaskModal(${Number(avion.id)}, ${Number(t.id)})">✏️ EDITAR</button></div>`;
+        }
+        if (mostrarBotonAlerta) {
+            // Botón ALERTA visible si puede cambiar estado
+            actionButtonsHtml = `<button class="action-btn ${t.atencion ? (t.alertaByTL ? 'active-alerta-tl' : 'active-alerta-tech') : ''}" onclick="toggleAtencion(${Number(avion.id)}, ${Number(t.id)})">⚠️</button>` + actionButtonsHtml;
         }
 
         const handleHtml = showHandle
@@ -10501,8 +10907,16 @@ async function showTechDetailsFromPanel(techName) {
         document.getElementById('prompt-input').placeholder = 'Ej: APOYO, URGENTE, PRECAUCIÓN...';
         showPromptModal("DEFINIR ALERTA", "", (val) => {
             if (isTeamLeader) {
-                tarea.atencion = true; tarea.alerta = val; tarea.alertaByTL = true; tarea.alertaNombre = '';
-                guardarMarcaTarea(aId, tId, { atencion: true, alerta: val, alertaByTL: true, alertaNombre: '' });
+                // NUEVO: TL también auto-llena nombre desde librería si tiene BP
+                const u = sessionUser();
+                const miBp = (usuariosDB[userKeyFor(u)] || {}).bp || '';
+                let nombreAuto = '';
+                if (miBp && libreriaTecnicos[miBp] && libreriaTecnicos[miBp].nombre) {
+                    nombreAuto = libreriaTecnicos[miBp].nombre;
+                }
+                tarea.atencion = true; tarea.alerta = val; tarea.alertaByTL = true; tarea.alertaNombre = nombreAuto;
+                guardarMarcaTarea(aId, tId, { atencion: true, alerta: val, alertaByTL: true, alertaNombre: nombreAuto });
+                if (nombreAuto) showToast('⚠️ ALERTA TL ACTIVADA: ' + val + ' · ' + nombreAuto);
             } else {
                 showNamePrompt(aId, tId, val, tarea);
             }
@@ -10510,6 +10924,23 @@ async function showTechDetailsFromPanel(techName) {
     }
 
     function showNamePrompt(aId, tId, alertaVal, tarea) {
+        // NUEVO: Auto-llenar nombre desde librería de técnicos usando BP del usuario
+        const u = sessionUser();
+        const miBp = (usuariosDB[userKeyFor(u)] || {}).bp || '';
+        let nombreAuto = '';
+        if (miBp && libreriaTecnicos[miBp] && libreriaTecnicos[miBp].nombre) {
+            nombreAuto = libreriaTecnicos[miBp].nombre;
+        }
+        
+        if (nombreAuto) {
+            // Si tenemos nombre en librería, usarlo directamente SIN preguntar
+            tarea.atencion = true; tarea.alerta = alertaVal; tarea.alertaNombre = nombreAuto; tarea.alertaByTL = false;
+            guardarMarcaTarea(aId, tId, { atencion: true, alerta: alertaVal, alertaNombre: nombreAuto, alertaByTL: false });
+            showToast('⚠️ ALERTA ACTIVADA: ' + alertaVal + ' · ' + nombreAuto);
+            return;
+        }
+        
+        // Fallback: si no hay BP o no está en librería, preguntar nombre (comportamiento original)
         document.getElementById('prompt-save-btn').innerText = 'CONFIRMAR';
         document.getElementById('prompt-input').placeholder = 'Tu nombre...';
         showPromptModal("NOMBRE DEL TÉCNICO", "", (name) => {
@@ -12230,6 +12661,17 @@ function openEditGroupTechs(groupTitle) {
         const checkboxes = document.querySelectorAll('.add-task-techs-cb:checked');
         const techs = Array.from(checkboxes).map(cb => cb.value).join(' - ');
 
+        // NUEVO: Obtener BPs de los técnicos seleccionados
+        const selectedTechNames = Array.from(checkboxes).map(cb => cb.value.trim().toUpperCase());
+        const asignadosBp = [];
+        selectedTechNames.forEach(nombre => {
+            const techObj = shiftTechs.find(t => techNombre(t) === nombre);
+            if (techObj && techBp(techObj)) {
+                const bpNorm = normalizeBp(techBp(techObj));
+                if (bpNorm && !asignadosBp.includes(bpNorm)) asignadosBp.push(bpNorm);
+            }
+        });
+
         // Barra final contra la carrera de dos TL del mismo equipo: mientras este
         // panel estaba abierto, el otro TL pudo aceptar la misma tarea. El barcode
         // es único, así que si ya existe se reabre en vez de duplicarla.
@@ -12246,7 +12688,7 @@ function openEditGroupTechs(groupTitle) {
             }
         }
 
-        avion.tareas.push({ id: Date.now(), desc, tango, techs, done: false, atencion: false, comment: comment });
+        avion.tareas.push({ id: Date.now(), desc, tango, techs, done: false, atencion: false, comment: comment, asignadosBp: asignadosBp });
         saveData(); closeModal('add-task-modal');
         if (lock) {
             // Recién ahora la tarea existe: recién ahora se da por aceptada.
@@ -12345,7 +12787,8 @@ function openEditGroupTechs(groupTitle) {
             techs: "", 
             done: false, 
             atencion: false, 
-            comment: "" 
+            comment: "",
+            asignadosBp: [] 
         });
         saveData();
         closeModal('predef-task-modal');
@@ -12406,7 +12849,18 @@ function openEditGroupTechs(groupTitle) {
         const checkboxes = document.querySelectorAll('.edit-task-techs-cb:checked');
         const techs = Array.from(checkboxes).map(cb => cb.value).join(' - ');
 
-        tarea.desc = desc; tarea.tango = tango; tarea.techs = techs; tarea.comment = comment;
+        // NUEVO: Obtener BPs de los técnicos seleccionados
+        const selectedTechNames = Array.from(checkboxes).map(cb => cb.value.trim().toUpperCase());
+        const asignadosBp = [];
+        selectedTechNames.forEach(nombre => {
+            const techObj = shiftTechs.find(t => techNombre(t) === nombre);
+            if (techObj && techBp(techObj)) {
+                const bpNorm = normalizeBp(techBp(techObj));
+                if (bpNorm && !asignadosBp.includes(bpNorm)) asignadosBp.push(bpNorm);
+            }
+        });
+
+        tarea.desc = desc; tarea.tango = tango; tarea.techs = techs; tarea.comment = comment; tarea.asignadosBp = asignadosBp;
         saveData(); closeModal('edit-task-modal');
     }
 
