@@ -1377,6 +1377,7 @@
             .avion-actions { justify-content: center; width: 100%; margin-top: 3px; }
             
             .task-item { position: relative; padding: 6px 8px 6px 30px; }
+            .task-item.no-toggle { padding-left: 8px; }
             .status-toggle { position: absolute; left: 6px; top: 7px; margin: 0; }
             .task-main { flex-direction: column; align-items: stretch; gap: 7px; }
             
@@ -2887,6 +2888,16 @@
                 <div class="admin-card-title">ROL FUNCIONAL</div>
                 <div class="admin-role-grid" id="user-modal-roles"></div>
                 <div class="team-note" id="user-modal-roles-nota">SUPER / PLANNER tienen alcance global. TL / TÉCNICO / USUARIO requieren seleccionar equipos.</div>
+
+                <!-- Contenedor fijo para BP (se muestra/oculta según rol) -->
+                <div id="user-modal-bp-container" class="admin-card" style="margin-top: 8px; display: none;">
+                    <div class="admin-card-title">BP (CÓDIGO DE TÉCNICO)</div>
+                    <div class="user-modal-fila">
+                        <input type="text" id="user-modal-bp" class="admin-field" placeholder="EJ: BP123456" maxlength="20" autocomplete="off" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase(); userModalEscribeBp()">
+                        <button class="btn-leader btn-modal-action" onclick="userModalGuardarBp()">GUARDAR</button>
+                    </div>
+                    <div class="team-note" style="color: var(--danger);">OBLIGATORIO PARA ROL TÉCNICO / TL</div>
+                </div>
 
                 <label class="admin-role-option" style="margin-top:8px; justify-content:center; padding:4px 8px;" id="user-modal-admin-wrap" title="Puede administrar usuarios y equipos. Con SUPER/PLANNER es admin global; con otros roles es admin solo de los equipos seleccionados.">
                     <input type="checkbox" id="user-modal-admin" onchange="userModalAlternarAdmin()"> ADMIN
@@ -7131,28 +7142,10 @@ ver('btn-add-tech-view', ocultarAvion && (esVistaTodos ? puedePanelEnTodos() : p
                 ? 'ESTE USUARIO ALCANZA TODOS LOS EQUIPOS. ELIGE UN ROL DE EQUIPO PARA DEJARLO SOLO EN ESE EQUIPO (SE LE QUITA EL ALCANCE GLOBAL).'
                 : 'SUPER / PLANNER tienen alcance global (todos los equipos). TL / TÉCNICO / USUARIO son de un solo equipo.';
         }
-
-        // NUEVO: Campo BP para tech/tl
+        // Campo BP: mostrar/ocultar contenedor fijo según rol
+        const bpContainer = document.getElementById('user-modal-bp-container');
         const esTechTl = rolActual === 'tech' || rolActual === 'tl';
-        const bpHtml = esTechTl ? `
-            <div class="admin-card" style="margin-top: 8px;">
-                <div class="admin-card-title">BP (CÓDIGO DE TÉCNICO)</div>
-                <div class="user-modal-fila">
-                    <input type="text" id="user-modal-bp" class="admin-field" placeholder="EJ: BP123456" maxlength="20" autocomplete="off" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase(); userModalEscribeBp()">
-                    <button class="btn-leader btn-modal-action" onclick="userModalGuardarBp()">GUARDAR</button>
-                </div>
-                <div class="team-note" style="color: var(--danger);">OBLIGATORIO PARA ROL TÉCNICO / TL</div>
-            </div>
-        ` : '';
-        
-        const globalDivForBp = document.getElementById('user-modal-equipos-global');
-        if (globalDivForBp && esTechTl) {
-            globalDivForBp.insertAdjacentHTML('beforebegin', bpHtml);
-        } else if (!esTechTl) {
-            // Remover si existe de antes
-            const existingBp = document.getElementById('user-modal-bp');
-            if (existingBp) existingBp.closest('.admin-card').remove();
-        }
+        if (bpContainer) bpContainer.style.display = esTechTl ? 'block' : 'none';
 
         // Cargar valor actual
         const inpBp = document.getElementById('user-modal-bp');
@@ -10319,7 +10312,10 @@ async function showTechDetailsFromPanel(techName) {
 
         // Para UI: si tiene técnicos y no está asignado y no puede cambiar sin BP → OCULTAR botones
         const mostrarBotonesEstado = puedeCompletarTarea && (sinRestricciones || bpPermitido || estaAsignado);
-        const mostrarBotonAlerta = puedeCompletarTarea && (sinRestricciones || bpPermitido || estaAsignado);
+        
+        // ALERTAS: TL y Super Admin SIEMPRE pueden poner alertas (incluso sin estar asignados)
+        const puedeAlertarSiempre = esSuperAdminFirebase || esSuperFuncional || esTl;
+        const mostrarBotonAlerta = puedeCompletarTarea && (sinRestricciones || bpPermitido || estaAsignado || puedeAlertarSiempre);
 
         const toggleClick = mostrarBotonesEstado ? `onclick="toggleTask(${Number(avion.id)}, ${Number(t.id)})"` : "";
         const toggleCursor = mostrarBotonesEstado ? "" : "cursor: default; opacity: 0.6;";
@@ -10330,8 +10326,9 @@ async function showTechDetailsFromPanel(techName) {
                 : (usaFallback
                     ? "Tu nombre no está en los técnicos asignados"
                     : (miBp ? "Tu BP no está asignado a esta tarea" : "No tienes BP configurado")));
-        // OCULTAR toggle si no tiene permisos (no solo deshabilitar)
-        const toggleHtml = mostrarBotonesEstado ? `<div class="status-toggle no-print" ${toggleClick} style="${toggleCursor}" title="${escapeAttr(toggleTitle)}">✓</div>` : '';
+        // SIEMPRE renderizar el toggle para mantener el layout, pero ocultarlo si no hay permisos
+        const toggleDisplay = mostrarBotonesEstado ? "" : "display: none;";
+        const toggleHtml = `<div class="status-toggle no-print" ${toggleClick} style="${toggleCursor}${toggleDisplay}" title="${escapeAttr(toggleTitle)}">✓</div>`;
 
         let actionButtonsHtml = '';
         if (puedeEditarTarea) {
@@ -10358,8 +10355,9 @@ async function showTechDetailsFromPanel(techName) {
         }
 
         const statusClass = t.estado && TASK_STATUS[t.estado] ? ` task-status-${escapeAttr(t.estado)}` : '';
+        const noToggleClass = mostrarBotonesEstado ? '' : ' no-toggle';
         return `
-            <div class="task-item ${t.done ? 'completed' : ''} ${t.atencion ? (t.alertaByTL ? 'alerta-tl' : 'alerta-tech') : ''}${statusClass}" data-avion-id="${escapeAttr(avion.id)}" data-task-id="${escapeAttr(t.id)}">
+            <div class="task-item ${t.done ? 'completed' : ''} ${t.atencion ? (t.alertaByTL ? 'alerta-tl' : 'alerta-tech') : ''}${statusClass}${noToggleClass}" data-avion-id="${escapeAttr(avion.id)}" data-task-id="${escapeAttr(t.id)}">
                 ${toggleHtml}
                 <div class="task-main">
                     <div class="task-info">
